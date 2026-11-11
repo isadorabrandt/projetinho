@@ -1,6 +1,6 @@
 // Guarda o app para abrir sem internet. Os dados ficam no navegador (localStorage), não aqui.
-const CACHE = "minhas-financas-v1";
-const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/logo.svg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
+const CACHE = "minhas-financas-v2";
+const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/logo.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", e => {
