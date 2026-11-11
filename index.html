@@ -450,6 +450,14 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 [data-skin="basico"] .meter.cat > span{box-shadow:none}
 .meter.cat.over{box-shadow:inset 0 0 0 1.5px var(--bad)}
 .pal-pick{display:flex;gap:8px;flex-wrap:wrap}
+.imp-list{display:flex;flex-direction:column;border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
+.imp-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:12px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.imp-row:last-child{border-bottom:0}
+.imp-row > div{display:flex;flex-direction:column;min-width:0}
+.imp-row select{border:1.5px solid var(--line);background:var(--surface-2);border-radius:10px;padding:8px 10px;min-width:0;width:100%}
+.imp-notes{font-size:13px;color:var(--muted)}
+.imp-notes summary{cursor:pointer;font-weight:600;color:var(--fg)}
+.imp-notes ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 .pal-pick label{position:relative;cursor:pointer}
 .pal-pick input{position:absolute;opacity:0;pointer-events:none}
 .pal-pick i{display:block;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(58,29,32,.22)}
@@ -971,7 +979,7 @@ function parcelsOf(t){
   const closeKey = day < (+card.closeDay||1) ? mk(t.date) : addM(mk(t.date),1);
   const firstDue = (+card.dueDay||10) > (+card.closeDay||1) ? closeKey : addM(closeKey,1);
   const total = creditTotal(t);
-  const base = +t.rate>0 ? r2(total/n) : Math.floor(t.amount*100/n)/100, out=[];
+  const base = +t.rate>0 ? r2(total/n) : Math.floor(Math.round(t.amount*100)/n)/100, out=[];
   for (let i=0;i<n;i++){
     const amount = i===n-1 ? r2(total - base*(n-1)) : base;
     out.push({tx:t, i, n, amount, invoiceKey:addM(firstDue,i), compKey:addM(mk(t.date),i)});
@@ -1595,6 +1603,9 @@ function vAjustes(){
     <section class="card s12"><div class="card-h"><div><h2>Backup</h2><div class="sub">${STORE.mode==="cloud"?"Seus dados ficam na sua conta e aparecem em todos os aparelhos em que você entrar. O backup é uma cópia extra.":STORE.mode==="db"?"Seus dados ficam salvos na sua conta Claude. O backup é uma cópia extra.":"Seus dados ficam só neste navegador. Guarde um backup de vez em quando."}</div></div></div>
       <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="export">Baixar backup (.json)</button>
       <label class="btn" for="import-file">Restaurar de um backup</label><input id="import-file" type="file" accept="application/json,.json" hidden></div>
+      <div class="divider"></div>
+      <div class="row" style="flex-wrap:wrap"><div class="grow" style="min-width:200px"><b>Importar lançamentos</b><div class="tiny muted">Traz lançamentos de um arquivo de importação (por exemplo, da sua planilha antiga) sem apagar nada do que já existe.</div></div>
+      <label class="btn primary" for="importtx-file">Importar lançamentos</label><input id="importtx-file" type="file" accept="application/json,.json" hidden></div>
       <div id="backup-out"></div>
     </section>
   </div>`;
@@ -1966,6 +1977,78 @@ function importBackup(file){
   r.readAsText(file);
 }
 
+/* ============ importar lançamentos (planilha convertida) ============ */
+function readImportFile(file){
+  const r = new FileReader();
+  r.onload = () => { let d; try { d = JSON.parse(r.result); } catch(e){ toast("Arquivo inválido."); return; }
+    if (d?.app!=="minhas-financas-import" || !Array.isArray(d.items)){ toast("Esse arquivo não é um arquivo de importação de lançamentos."); return; }
+    importModal(d); };
+  r.readAsText(file);
+}
+function bestMatch(name, list, label){
+  const n = normTxt(name); if (!n) return null;
+  let hit = list.find(x => normTxt(label(x))===n); if (hit) return hit;
+  const cands = list.filter(x => { const l = normTxt(label(x)); return l.includes(n) || n.includes(l); });
+  cands.sort((a,b)=>label(a).length-label(b).length); return cands[0] || null;
+}
+function importModal(pkg){
+  const items = pkg.items;
+  const accNames = [...new Set(items.flatMap(i=>[i.account,i.toAccount]).filter(Boolean))];
+  const cardNames = [...new Set(items.map(i=>i.card).filter(Boolean))];
+  const catKinds = {}; items.forEach(i => { if (i.category) catKinds[i.category] = i.type==="receita" ? "receita" : (catKinds[i.category]||"despesa"); });
+  const catNames = Object.keys(catKinds);
+  const cnt = (f) => items.filter(f).length;
+  const sel = (id, opts, chosen, newLabel) => `<select id="${id}" data-imp="1">${opts.map(o=>`<option value="${esc(o.id)}" ${o.id===chosen?"selected":""}>${esc(o.label)}</option>`).join("")}<option value="__new__" ${chosen==="__new__"?"selected":""}>${esc(newLabel)}</option></select>`;
+  const accRow = (n,i) => { const m = bestMatch(n, CFG.accounts, a=>a.name); return `<div class="imp-row"><div><b>${esc(n)}</b><span class="tiny muted">${cnt(x=>x.account===n||x.toAccount===n)} lançamento(s)</span></div>${sel("imp-acc-"+i, CFG.accounts.map(a=>({id:a.id,label:a.name})), m?.id||"__new__", `Criar conta “${n}”`)}</div>`; };
+  const cardRow = (n,i) => { const k = n.replace(/^cart[aã]o\s+/i,""); const m = bestMatch(k, CFG.cards, c=>bankName(c)) || bestMatch(k, CFG.cards, c=>c.name); return `<div class="imp-row"><div><b>${esc(n)}</b><span class="tiny muted">${cnt(x=>x.card===n)} compra(s)</span></div>${sel("imp-card-"+i, CFG.cards.map(c=>({id:c.id,label:`${c.name} · ${bankName(c)}`})), m?.id||"__new__", `Criar “${n}”`)}</div>`; };
+  const catRow = (n,i) => { const kind = catKinds[n]; const list = CFG.categories.filter(c=>c.kind===kind); const m = bestMatch(n, list, c=>c.name); return `<div class="imp-row"><div><b>${esc(n)}</b><span class="tiny muted">${cnt(x=>x.category===n)} · ${kind}</span></div>${sel("imp-cat-"+i, list.map(c=>({id:c.id,label:c.name})), m?.id||"__new__", `Criar categoria “${n}”`)}</div>`; };
+  const dates = items.map(i=>i.date).sort();
+  const already = items.filter(i=>findTx("imp-"+i.key)).length;
+  openModal({title:"Importar lançamentos", wide:true, submitLabel:`Importar ${items.length-already} lançamento(s)`, body:`
+    <div class="banner info" style="margin:0"><span><b>${items.length}</b> lançamentos de ${dBR(dates[0])}/${dates[0].slice(0,4)} a ${dBR(dates[dates.length-1])}/${dates[dates.length-1].slice(0,4)}${already?` · ${already} já foram importados antes e serão pulados`:""}. Nada do que você já tem será apagado.</span></div>
+    <p class="muted" style="margin:0">Confirme a que corresponde cada nome da planilha no seu app.</p>
+    <div class="flabel">Contas</div><div class="imp-list">${accNames.map(accRow).join("")}</div>
+    ${cardNames.length?`<div class="flabel">Cartões</div><div class="imp-list">${cardNames.map(cardRow).join("")}</div>`:""}
+    <div class="flabel">Categorias</div><div class="imp-list">${catNames.map(catRow).join("")}</div>
+    ${cardNames.length?`<label class="check"><input type="checkbox" name="paidOld" checked>Considerar pagas as faturas de cartão que já venceram (para não ocupar o limite)</label>`:""}
+    ${pkg.notes?.length?`<details class="imp-notes"><summary>O que foi ajustado na conversão (${pkg.notes.length})</summary><ul>${pkg.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></details>`:""}`,
+    onSubmit: () => {
+      const f = document.getElementById("mform"), v = fd();
+      const accMap = {}, cardMap = {}, catMap = {};
+      accNames.forEach((n,i) => { let id = f.querySelector("#imp-acc-"+i).value;
+        if (id==="__new__"){ const hit = bestMatch(n, LOGO_INDEX, x=>x.n); const cash = /dinheiro|carteira|esp[eé]cie/i.test(n);
+          const a = {id:uid(), bank: cash ? "dinheiro" : hit ? "inst" : "outro", ispb: !cash && hit ? hit.i : "", bankName: !cash && hit ? hit.n : (cash ? "" : n), name:n, type: /garant/i.test(n) ? "garantia" : cash ? "carteira" : "corrente", initial:0, initialDate:todayStr(), committed:0, color:"", logo:"", note:"Criada pela importação"};
+          CFG.accounts.push(a); id = a.id; }
+        accMap[n] = id; });
+      cardNames.forEach((n,i) => { let id = f.querySelector("#imp-card-"+i).value;
+        if (id==="__new__"){ const k = n.replace(/^cart[aã]o\s+/i,""); const hit = bestMatch(k, LOGO_INDEX, x=>x.n);
+          const c = {id:uid(), bank: hit ? "inst" : "outro", ispb: hit?.i||"", bankName: hit?.n || k, name:n, limit:0, closeDay:1, dueDay:8, payAccountId: accMap[k] || bestMatch(k, CFG.accounts, a=>a.name)?.id || "", network:"", last4:"", finish:"brilho", logoMode:"auto", color:"", logo:""};
+          CFG.cards.push(c); id = c.id; }
+        cardMap[n] = id; });
+      catNames.forEach((n,i) => { let id = f.querySelector("#imp-cat-"+i).value;
+        if (id==="__new__"){ const c = {id:uid(), name:n, kind:catKinds[n], budget:0, subs:[]}; CFG.categories.push(c); const pm = palMap(); c.pal = pm[c.id]; id = c.id; }
+        catMap[n] = id; });
+      saveCfg();
+      let added = 0; const touched = new Set();
+      for (const it of items){
+        const id = "imp-"+it.key; if (findTx(id)) continue;
+        const t = {id, createdAt:Date.now()+added, type:it.type, amount:r2(it.amount), date:it.date, desc:it.desc||"", note:it.note||"", imported:true};
+        if (it.type==="despesa" || it.type==="receita"){ t.accountId = accMap[it.account]||""; t.catId = catMap[it.category]||""; t.subId = ""; if (it.salary) t.salary = true; }
+        if (it.type==="credito"){ t.cardId = cardMap[it.card]||""; t.installments = +it.installments||1; t.catId = catMap[it.category]||""; t.subId = ""; touched.add(t.cardId); }
+        if (it.type==="transfer"){ t.accountId = accMap[it.account]||""; t.toAccountId = accMap[it.toAccount]||""; }
+        putTx(t); added++;
+      }
+      let paid = 0;
+      if (v.paidOld){ const td = todayStr();
+        touched.forEach(cid => { const card = cardById(cid); if (!card) return;
+          const keys = new Set(allParcels().filter(p=>p.tx.cardId===cid && p.tx.imported).map(p=>p.invoiceKey));
+          keys.forEach(k => { const iv = invoiceOf(card,k); if (iv.dueDate < td && iv.remaining > 0){
+            putTx({id:"imp-fat-"+cid+"-"+k, createdAt:Date.now(), type:"fatura", cardId:cid, invoiceKey:k, amount:iv.remaining, date:iv.dueDate, accountId:card.payAccountId||CFG.income.accountId||CFG.accounts[0]?.id||"", desc:"Pagamento de fatura (importação)", imported:true}); paid++; } }); }); }
+      closeModal(); UI.view = "lancamentos"; UI.month = mk(dates[dates.length-1]);
+      toast(`${added} lançamento(s) importado(s)${paid?` · ${paid} fatura(s) marcadas como pagas`:""}`); render();
+    }});
+}
+
 /* ============ tema, rota, toast ============ */
 const SKINS = {colorido:{label:"Colorido", sw:["#FBF3E2","#7A1E2C","#2F7EB5","#EE6A2C","#8D9B2C"]}, basico:{label:"Básico", sw:["#F2F4F9","#151A2D","#2E4BDB","#E0763A","#1FA463"]}};
 function currentSkin(){ return document.documentElement.getAttribute("data-skin")==="basico" ? "basico" : "colorido"; }
@@ -2055,6 +2138,7 @@ document.addEventListener("change", e => {
   const el = e.target;
   if (el.id==="m-logo-file") handleLogoFile(el.files[0]);
   else if (el.id==="import-file" && el.files[0]) importBackup(el.files[0]);
+  else if (el.id==="importtx-file" && el.files[0]){ const f = el.files[0]; el.value = ""; readImportFile(f); }
   else if (el.closest("#mform")){ if (el.name==="payCard"){ const inv = document.getElementById("m-inv"); if (inv){ inv.dataset.cur=""; inv.innerHTML=""; } const f = document.getElementById("mform"); f.amount.value=""; } refreshTxModal(); if (document.getElementById("brand-preview") || document.getElementById("card-preview")) refreshBrandPreview(); }
 });
 document.addEventListener("error", e => {
