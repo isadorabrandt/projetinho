@@ -72,7 +72,13 @@ a{color:var(--accent)}
 .side-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--muted);padding:0 8px}
 .store-pill{display:inline-flex;align-items:center;gap:6px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
-.dot.ok{background:var(--good)} .dot.warn{background:var(--warn)}
+.dot.ok{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+.auth-wrap{min-height:100vh;display:grid;place-items:center;padding-block:32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.auth-card{width:100%;max-width:420px;gap:16px;padding:24px}
+.auth-head{display:flex;align-items:center;gap:14px}
+.auth-head h1{font-size:26px;color:var(--accent)}
+.auth-head .muted{font-size:13px}
+.auth-logo{width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(90,50,10,.28));flex:none}
 .theme-row{display:flex;gap:4px}
 .theme-row button{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 0;cursor:pointer;font-size:12px}
 .theme-row button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
@@ -549,7 +555,7 @@ const ico = (n,cls="") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" s
 /* ============ estado ============ */
 let CFG = null;            // configuração (contas, cartões, categorias, renda, metas, contas fixas)
 let MONTHS = {};           // "AAAA-MM" -> [lançamentos]
-const STORE = {mode:"loading", db:null, note:"", writes:{}, dlr:null};
+const STORE = {mode:"loading", db:null, note:"", writes:{}, dlr:null, sb:null, user:null, sync:"ok", dirty:{cfg:false, months:new Set()}};
 const UI = {view:"geral", month:mk(todayStr()), cardId:null, walletOpen:false, filt:{type:"",cat:"",src:"",q:""}};
 const LS_KEY = "caixa-pessoal-v1";
 const VIEWS = {geral:"Visão geral", lancamentos:"Lançamentos", contas:"Contas", cartoes:"Cartões", fixas:"Contas fixas", orcamento:"Orçamento", metas:"Metas", patrimonio:"Patrimônio", ajustes:"Ajustes"};
@@ -584,7 +590,12 @@ function normalizeCfg(c){
   return c;
 }
 
-/* ============ persistência (banco do artifact ou navegador) ============ */
+/* ============ persistência (banco do Claude, nuvem Supabase ou navegador) ============ */
+// Nuvem: projeto Supabase da Isadora. A chave "anon public" é feita para ficar no app;
+// quem protege os dados são as regras de acesso (RLS) em supabase/schema.sql.
+const CLOUD = { url: "https://nlwgixhgqptvnmmscelu.supabase.co", key: "" };
+const cloudOn = () => !!(CLOUD.url && CLOUD.key) && !window.claude;
+const AUTH = {view:"entrar", msg:"", err:"", busy:false, email:""};
 function lsRead(){ try{ return JSON.parse(localStorage.getItem(LS_KEY) || "null"); }catch(e){ return null; } }
 function lsWrite(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({cfg:CFG, months:MONTHS})); }catch(e){ toast("Não foi possível salvar neste navegador."); } }
 
@@ -599,12 +610,14 @@ function queueWrite(key, fn){
 let cfgTimer = null;
 function saveCfg(){
   if (STORE.mode === "local") return lsWrite();
+  if (STORE.mode === "cloud"){ STORE.dirty.cfg = true; cloudCacheWrite(); return scheduleFlush(); }
   if (STORE.mode !== "db") return;
   clearTimeout(cfgTimer);
   cfgTimer = setTimeout(() => queueWrite("cfg", () => STORE.db.doc("fin/config").set(clone(CFG))), 250);
 }
 function saveMonth(key){
   if (STORE.mode === "local") return lsWrite();
+  if (STORE.mode === "cloud"){ STORE.dirty.months.add(key); cloudCacheWrite(); return scheduleFlush(); }
   if (STORE.mode !== "db") return;
   const items = clone(MONTHS[key] || []);
   queueWrite("m"+key, () => items.length ? STORE.db.doc("tx/"+key).set({items}) : STORE.db.doc("tx/"+key).delete());
@@ -615,7 +628,7 @@ async function boot(){
   readHash();
   let db = null;
   try { if (window.claude?.use) db = await window.claude.use("db"); } catch(e){ db = null; }
-  if (!db){ startLocal(); return; }
+  if (!db){ if (cloudOn()) startCloud(); else startLocal(); return; }
   STORE.db = db; STORE.mode = "db";
   let gotCfg = false, gotTx = false, settled = false;
   const timer = setTimeout(() => { if (!settled){ STORE.note = "Ainda não consegui falar com o armazenamento. Os dados podem estar desatualizados."; render(); } }, 10000);
@@ -634,6 +647,167 @@ async function boot(){
     settle();
   }, err => { console.error(err); });
 }
+/* ---------- nuvem (Supabase) ---------- */
+function loadScript(src){ return new Promise((ok, fail) => { const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = fail; document.head.appendChild(el); }); }
+async function loadSupabase(){
+  if (window.supabase?.createClient) return window.supabase;
+  for (const src of ["vendor/supabase-2.117.3.js", "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"]){
+    try { await loadScript(src); if (window.supabase?.createClient) return window.supabase; } catch(e){}
+  }
+  return null;
+}
+const cacheKey = () => "mf-cloud-" + (STORE.user?.id || "");
+function cloudCacheRead(){ try { return JSON.parse(localStorage.getItem(cacheKey()) || "null"); } catch(e){ return null; } }
+function cloudCacheWrite(){ if (!STORE.user) return; try { localStorage.setItem(cacheKey(), JSON.stringify({cfg:CFG, months:MONTHS, dirty:{cfg:STORE.dirty.cfg, months:[...STORE.dirty.months]}})); } catch(e){} }
+const SYNC_TXT = {ok:["ok","Sincronizado na nuvem"], saving:["warn","Salvando…"], offline:["warn","Sem internet · salvo no aparelho"], error:["bad","Não sincronizou · tentando de novo"]};
+function syncPill(){ const [c,t] = SYNC_TXT[STORE.sync] || SYNC_TXT.ok; return `<span class="dot ${c}"></span>${t}`; }
+function setSync(st){ STORE.sync = st; const el = document.getElementById("sync-pill"); if (el) el.innerHTML = syncPill(); }
+let flushT = null, flushing = null, retryT = null;
+function scheduleFlush(){ clearTimeout(flushT); flushT = setTimeout(cloudFlush, 400); }
+async function cloudFlush(){
+  if (STORE.mode !== "cloud" || !STORE.sb) return;
+  if (flushing) return flushing.then(() => (STORE.dirty.cfg || STORE.dirty.months.size) ? cloudFlush() : null);
+  if (!navigator.onLine){ setSync("offline"); return; }
+  if (!STORE.dirty.cfg && !STORE.dirty.months.size){ setSync("ok"); return; }
+  const sb = STORE.sb, uid = STORE.user.id, now = () => new Date().toISOString();
+  flushing = (async () => {
+    setSync("saving");
+    try {
+      if (STORE.dirty.cfg && CFG){
+        STORE.dirty.cfg = false;
+        const {error} = await sb.from("finance_config").upsert({user_id:uid, config:clone(CFG), updated_at:now()});
+        if (error){ STORE.dirty.cfg = true; throw error; }
+      }
+      for (const k of [...STORE.dirty.months]){
+        STORE.dirty.months.delete(k);
+        const items = clone(MONTHS[k] || []);
+        const {error} = items.length
+          ? await sb.from("finance_months").upsert({user_id:uid, month:k, items, updated_at:now()})
+          : await sb.from("finance_months").delete().eq("user_id", uid).eq("month", k);
+        if (error){ STORE.dirty.months.add(k); throw error; }
+      }
+      setSync("ok");
+    } catch(e){
+      console.error(e); setSync(navigator.onLine ? "error" : "offline");
+      clearTimeout(retryT); retryT = setTimeout(cloudFlush, 15000);
+    } finally { cloudCacheWrite(); flushing = null; }
+  })();
+  return flushing;
+}
+async function cloudPull(){
+  if (STORE.mode !== "cloud" || !STORE.sb || !navigator.onLine) return;
+  if (STORE.dirty.cfg || STORE.dirty.months.size) await cloudFlush();
+  if (STORE.dirty.cfg || STORE.dirty.months.size) return; // ainda há algo pendente: não sobrescreve o que está no aparelho
+  const sb = STORE.sb;
+  const [c, m] = await Promise.all([sb.from("finance_config").select("config").limit(1), sb.from("finance_months").select("month,items")]);
+  if (c.error || m.error){ console.error(c.error || m.error); setSync("error"); return; }
+  const cfg = c.data?.[0]?.config;
+  CFG = cfg ? normalizeCfg(cfg) : null;
+  const mm = {}; (m.data || []).forEach(r => { if (Array.isArray(r.items)) mm[r.month] = r.items; });
+  MONTHS = mm; STORE.cloudLoaded = true; setSync("ok"); cloudCacheWrite(); render();
+}
+async function startCloud(){
+  STORE.mode = "auth-loading"; render();
+  const lib = await loadSupabase();
+  if (!lib){ STORE.note = "Não consegui carregar o login agora. Usando os dados deste aparelho."; startLocal(); return; }
+  STORE.sb = lib.createClient(CLOUD.url, CLOUD.key, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storageKey:"mf-auth"}});
+  STORE.sb.auth.onAuthStateChange((ev, session) => {
+    if (ev === "PASSWORD_RECOVERY"){ AUTH.view = "nova-senha"; AUTH.err = AUTH.msg = ""; STORE.mode = "auth"; render(); }
+    else if (ev === "SIGNED_IN" && session?.user && STORE.mode !== "cloud" && AUTH.view !== "nova-senha") setTimeout(() => enterCloud(session.user), 0);
+  });
+  let session = null;
+  try { session = (await STORE.sb.auth.getSession()).data.session; } catch(e){}
+  if (session?.user && AUTH.view !== "nova-senha") await enterCloud(session.user);
+  else if (STORE.mode !== "auth"){ STORE.mode = "auth"; render(); }
+}
+async function enterCloud(user){
+  if (STORE.mode === "cloud" && STORE.user?.id === user.id) return;
+  STORE.user = user; STORE.mode = "cloud"; STORE.cloudLoaded = false;
+  const cache = cloudCacheRead();
+  if (cache?.cfg){ CFG = normalizeCfg(cache.cfg); MONTHS = cache.months || {}; STORE.dirty = {cfg:!!cache.dirty?.cfg, months:new Set(cache.dirty?.months || [])}; }
+  else { CFG = null; MONTHS = {}; STORE.dirty = {cfg:false, months:new Set()}; }
+  render();
+  try { await cloudPull(); } catch(e){ console.error(e); setSync("error"); }
+}
+async function cloudSignOut(){
+  try { await cloudFlush(); } catch(e){}
+  try { localStorage.removeItem(cacheKey()); } catch(e){}
+  try { await STORE.sb.auth.signOut(); } catch(e){}
+  STORE.user = null; CFG = null; MONTHS = {}; STORE.dirty = {cfg:false, months:new Set()};
+  AUTH.view = "entrar"; AUTH.msg = "Você saiu da sua conta."; AUTH.err = ""; STORE.mode = "auth"; render();
+}
+function authErr(e){
+  const m = String(e?.message || e || "");
+  if (/invalid login credentials/i.test(m)) return "E-mail ou senha incorretos.";
+  if (/email not confirmed/i.test(m)) return "Confirme seu e-mail pelo link que enviamos antes de entrar.";
+  if (/already registered|already been registered/i.test(m)) return "Já existe uma conta com esse e-mail. Use Entrar.";
+  if (/password.*(6|characters)/i.test(m)) return "A senha precisa ter pelo menos 6 caracteres.";
+  if (/rate limit|too many/i.test(m)) return "Muitas tentativas seguidas. Espere um minuto e tente de novo.";
+  if (/failed to fetch|network/i.test(m)) return "Sem conexão com a internet. Tente de novo quando estiver on-line.";
+  return "Não deu certo: " + m;
+}
+function authScreen(){
+  const V = AUTH.view, tab = (k,l) => `<button type="button" data-act="auth-view" data-v="${k}" aria-pressed="${V===k}">${l}</button>`;
+  const msg = AUTH.err ? `<div class="banner bad" style="margin:0">${esc(AUTH.err)}</div>` : AUTH.msg ? `<div class="banner info" style="margin:0"><span>${esc(AUTH.msg)}</span></div>` : "";
+  const em = esc(AUTH.email||"");
+  let body = "";
+  if (V==="entrar") body = `<form class="stack" data-form="auth-login" style="gap:12px">
+      <div class="field"><label for="au-email">E-mail</label><input id="au-email" name="email" type="email" autocomplete="email" required value="${em}"></div>
+      <div class="field"><label for="au-pass">Senha</label><input id="au-pass" name="password" type="password" autocomplete="current-password" required></div>
+      <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>${AUTH.busy?"Entrando…":"Entrar"}</button>
+      <button class="btn ghost" type="button" data-act="auth-view" data-v="recuperar">Esqueci minha senha</button></form>`;
+  if (V==="criar") body = `<form class="stack" data-form="auth-signup" style="gap:12px">
+      <div class="field"><label for="au-name">Como quer ser chamada(o)</label><input id="au-name" name="name" autocomplete="given-name" required></div>
+      <div class="field"><label for="au-email2">E-mail</label><input id="au-email2" name="email" type="email" autocomplete="email" required value="${em}"></div>
+      <div class="field"><label for="au-pass2">Senha</label><input id="au-pass2" name="password" type="password" autocomplete="new-password" minlength="6" required><span class="hint">Pelo menos 6 caracteres.</span></div>
+      <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>${AUTH.busy?"Criando…":"Criar conta"}</button></form>`;
+  if (V==="recuperar") body = `<form class="stack" data-form="auth-reset" style="gap:12px">
+      <p class="muted" style="margin:0">Enviaremos um link para você criar uma senha nova.</p>
+      <div class="field"><label for="au-email3">E-mail</label><input id="au-email3" name="email" type="email" autocomplete="email" required value="${em}"></div>
+      <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>Enviar link</button>
+      <button class="btn ghost" type="button" data-act="auth-view" data-v="entrar">Voltar para entrar</button></form>`;
+  if (V==="nova-senha") body = `<form class="stack" data-form="auth-newpass" style="gap:12px">
+      <div class="field"><label for="au-np1">Nova senha</label><input id="au-np1" name="p1" type="password" autocomplete="new-password" minlength="6" required></div>
+      <div class="field"><label for="au-np2">Repita a nova senha</label><input id="au-np2" name="p2" type="password" autocomplete="new-password" minlength="6" required></div>
+      <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>Salvar nova senha</button></form>`;
+  return `<div class="auth-wrap"><section class="card auth-card">
+    <div class="auth-head"><img src="${APP_LOGO}" alt="" class="auth-logo"><div><h1>Minhas Finanças</h1><span class="muted">Seus dados salvos na sua conta, em qualquer aparelho</span></div></div>
+    ${V==="entrar"||V==="criar"?`<div class="seg" role="group" aria-label="Acesso">${tab("entrar","Entrar")}${tab("criar","Criar conta")}</div>`:""}
+    ${msg}${body}
+  </section></div>`;
+}
+async function handleAuthForm(kind, v){
+  const sb = STORE.sb; if (!sb) return;
+  AUTH.err = ""; AUTH.msg = ""; AUTH.busy = true; if (v.email) AUTH.email = v.email.trim(); render();
+  const back = location.origin && location.origin !== "null" ? location.origin + location.pathname : undefined;
+  try {
+    if (kind==="auth-login"){
+      const {data, error} = await sb.auth.signInWithPassword({email:v.email.trim(), password:v.password});
+      if (error) throw error; AUTH.busy = false; await enterCloud(data.user); return;
+    }
+    if (kind==="auth-signup"){
+      const {data, error} = await sb.auth.signUp({email:v.email.trim(), password:v.password, options:{data:{name:(v.name||"").trim()}, emailRedirectTo:back}});
+      if (error) throw error;
+      AUTH.busy = false;
+      if (data.session?.user){ await enterCloud(data.session.user); return; }
+      AUTH.view = "entrar"; AUTH.msg = `Conta criada! Enviamos um link de confirmação para ${v.email.trim()}. Depois de confirmar, é só entrar.`;
+    }
+    if (kind==="auth-reset"){
+      const {error} = await sb.auth.resetPasswordForEmail(v.email.trim(), {redirectTo:back});
+      if (error) throw error; AUTH.view = "entrar"; AUTH.msg = "Se esse e-mail tiver conta, você vai receber o link em instantes. Confira também o spam.";
+    }
+    if (kind==="auth-newpass"){
+      if (v.p1 !== v.p2) throw new Error("As duas senhas precisam ser iguais.");
+      const {data, error} = await sb.auth.updateUser({password:v.p1});
+      if (error) throw error; AUTH.busy = false; AUTH.view = "entrar"; toast("Senha alterada"); await enterCloud(data.user); return;
+    }
+  } catch(e){ AUTH.err = /iguais/.test(e?.message||"") ? e.message : authErr(e); }
+  AUTH.busy = false; render();
+}
+window.addEventListener("online", () => { if (STORE.mode==="cloud") cloudFlush().then(cloudPull); });
+window.addEventListener("offline", () => { if (STORE.mode==="cloud") setSync("offline"); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState==="visible" && STORE.mode==="cloud" && !document.getElementById("mform")) cloudPull().catch(()=>{}); });
+
 function startLocal(){
   STORE.mode = "local";
   const saved = lsRead();
@@ -808,7 +982,9 @@ function removeTxWhere(pred){ for (const k in MONTHS){ const n = MONTHS[k].filte
 /* ============ render principal ============ */
 function render(){
   const app = document.getElementById("app");
-  if (STORE.mode==="loading"){ app.innerHTML = `<div class="loading">Carregando suas finanças…</div>`; return; }
+  if (STORE.mode==="loading" || STORE.mode==="auth-loading"){ app.innerHTML = `<div class="loading">Carregando suas finanças…</div>`; return; }
+  if (STORE.mode==="auth"){ app.innerHTML = authScreen(); return; }
+  if (STORE.mode==="cloud" && !CFG && !STORE.cloudLoaded){ app.innerHTML = `<div class="loading">Buscando seus dados na nuvem…</div>`; return; }
   if (!CFG){ app.innerHTML = shell(onboarding()); return; }
   let body = "";
   try { body = ({geral:vGeral, lancamentos:vLanc, contas:vContas, cartoes:vCartoes, fixas:vFixas, orcamento:vOrc, metas:vMetas, patrimonio:vPatr, ajustes:vAjustes}[UI.view] || vGeral)(); }
@@ -817,7 +993,7 @@ function render(){
 }
 function shell(body){
   const nav = Object.keys(VIEWS).map(v => `<button data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}><span class="ni">${ico(VIEW_ICONS[v])}</span><span>${VIEWS[v]}</span></button>`).join("");
-  const storeTxt = STORE.mode==="db" ? `<span class="store-pill"><span class="dot ok"></span>Salvo na sua conta</span>` : `<span class="store-pill"><span class="dot warn"></span>Salvo só neste navegador</span>`;
+  const storeTxt = STORE.mode==="cloud" ? `<span class="store-pill" id="sync-pill">${syncPill()}</span><button class="btn sm ghost" data-act="logout" style="justify-content:flex-start;padding:0">Sair da conta</button>` : STORE.mode==="db" ? `<span class="store-pill"><span class="dot ok"></span>Salvo na sua conta</span>` : `<span class="store-pill"><span class="dot warn"></span>Salvo só neste navegador</span>`;
   const showTop = CFG && !["contas","metas","ajustes"].includes(UI.view);
   return `<div class="shell">
   <aside class="side">
@@ -1295,8 +1471,9 @@ function vAjustes(){
     <section class="card s6"><div class="card-h"><div><h2>Aparência</h2><div class="sub">Escolha o tema do app</div></div></div>
       <div class="skin-pick">${Object.entries(SKINS).map(([k,v])=>`<button class="skin-opt" data-act="skin" data-m="${k}" aria-pressed="${currentSkin()===k}"><span class="skin-sw">${v.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</span>${v.label}</button>`).join("")}</div>
     </section>
+    ${STORE.mode==="cloud"?`<section class="card s12"><div class="card-h"><div><h2>Sua conta</h2><div class="sub">${esc(STORE.user?.email||"")}</div></div><div class="actions"><button class="btn sm" data-act="logout">Sair da conta</button></div></div><div class="row tiny muted" id="sync-pill-2">Os dados sincronizam sozinhos. Sem internet, ficam guardados no aparelho e sobem quando a conexão voltar.</div></section>`:""}
     <section class="card s12"><div class="card-h"><div><h2>Categorias e subcategorias</h2><div class="sub">Personalize nomes, cores, limites e subcategorias</div></div><div class="actions"><button class="btn sm" data-act="new-cat">${ico("plus")}Categoria</button></div></div><div class="list">${cats}</div></section>
-    <section class="card s12"><div class="card-h"><div><h2>Backup</h2><div class="sub">${STORE.mode==="db"?"Seus dados ficam salvos na sua conta Claude. O backup é uma cópia extra.":"Seus dados ficam só neste navegador. Guarde um backup de vez em quando."}</div></div></div>
+    <section class="card s12"><div class="card-h"><div><h2>Backup</h2><div class="sub">${STORE.mode==="cloud"?"Seus dados ficam na sua conta e aparecem em todos os aparelhos em que você entrar. O backup é uma cópia extra.":STORE.mode==="db"?"Seus dados ficam salvos na sua conta Claude. O backup é uma cópia extra.":"Seus dados ficam só neste navegador. Guarde um backup de vez em quando."}</div></div></div>
       <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="export">Baixar backup (.json)</button>
       <label class="btn" for="import-file">Restaurar de um backup</label><input id="import-file" type="file" accept="application/json,.json" hidden></div>
       <div id="backup-out"></div>
@@ -1305,8 +1482,10 @@ function vAjustes(){
 }
 
 function onboarding(){
+  const local = STORE.mode==="cloud" ? lsRead() : null;
+  const importBox = local?.cfg ? `<div class="banner info" style="margin:0;flex-wrap:wrap"><span style="flex:1 1 220px">Encontrei dados salvos neste aparelho${local.cfg.profile?.name?` (${esc(local.cfg.profile.name)})`:""}. Quer levar tudo para a sua conta?</span><button class="btn sm primary" data-act="import-local">Levar para a conta</button></div>` : "";
   return `<section class="card" style="max-width:560px;margin:40px auto">
-    <h2 style="font-size:22px">Vamos montar seu painel</h2>
+    <h2 style="font-size:22px">Vamos montar seu painel</h2>${importBox}
     <p class="muted" style="margin:0">Comece pela sua renda. Depois você adiciona contas, cartões e limites por categoria.</p>
     <form class="stack" data-form="onboard" style="gap:12px">
       <div class="frow"><div class="field"><label for="ob-amount">Salário líquido mensal</label><input id="ob-amount" name="amount" inputmode="decimal" placeholder="0,00" required></div>
@@ -1686,6 +1865,9 @@ document.addEventListener("click", e => {
     case "month": UI.month = addM(UI.month, +el.dataset.d); render(); break;
     case "month-today": UI.month = mk(todayStr()); render(); break;
     case "skin": setSkin(el.dataset.m); break;
+    case "auth-view": AUTH.view = el.dataset.v; AUTH.err = ""; AUTH.msg = ""; render(); break;
+    case "logout": cloudSignOut(); break;
+    case "import-local": { const l = lsRead(); if (l?.cfg){ CFG = normalizeCfg(l.cfg); MONTHS = l.months || {}; if (!CFG.profile?.name && STORE.user?.user_metadata?.name) CFG.profile = {name:STORE.user.user_metadata.name}; saveCfg(); Object.keys(MONTHS).forEach(saveMonth); toast("Dados levados para a sua conta"); render(); } break; }
     case "scrim": case "close": closeModal(); break;
     case "new-tx": txModal(null, {type:el.dataset.type, cardId:el.dataset.card}); break;
     case "edit-tx": { const t = findTx(id); if (t) txModal(t); break; }
@@ -1729,7 +1911,8 @@ document.addEventListener("submit", e => {
   const v = Object.fromEntries(new FormData(f).entries());
   if (f.dataset.form==="name"){ const nm = (v.name||"").trim(); if (!nm) return; CFG.profile = {...(CFG.profile||{}), name:nm}; saveCfg(); render(); return; }
   if (f.dataset.form==="income"){ CFG.income = {amount:parseMoney(v.amount), day:Math.max(1,Math.min(31,+v.day||1)), accountId:v.accountId}; CFG.savingsTarget = parseMoney(v.savingsTarget); CFG.profile = {...(CFG.profile||{}), name:(v.pname||"").trim()}; saveCfg(); toast("Dados salvos"); render(); }
-  if (f.dataset.form==="onboard"){ CFG = defaultConfig(parseMoney(v.amount), Math.max(1,Math.min(31,+v.day||5))); saveCfg(); render(); toast("Painel criado. Agora adicione suas contas."); }
+  if (f.dataset.form && f.dataset.form.startsWith("auth-")){ handleAuthForm(f.dataset.form, v); return; }
+  if (f.dataset.form==="onboard"){ CFG = defaultConfig(parseMoney(v.amount), Math.max(1,Math.min(31,+v.day||5))); if (STORE.user?.user_metadata?.name) CFG.profile = {name:STORE.user.user_metadata.name}; saveCfg(); render(); toast("Painel criado. Agora adicione suas contas."); }
 });
 function maskMoney(el){
   const neg = el.dataset.neg==="1" && /^\s*-/.test(el.value);
