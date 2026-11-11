@@ -593,7 +593,7 @@ function normalizeCfg(c){
 /* ============ persistência (banco do Claude, nuvem Supabase ou navegador) ============ */
 // Nuvem: projeto Supabase da Isadora. A chave "anon public" é feita para ficar no app;
 // quem protege os dados são as regras de acesso (RLS) em supabase/schema.sql.
-const CLOUD = { url: "https://nlwgixhgqptvnmmscelu.supabase.co", key: "" };
+const CLOUD = { url: "https://nlwgixhgqptvnmmscelu.supabase.co", key: "sb_publishable_5AGQPfKOxKONUJAAnLh-Ag_BqG3Wl2c" };
 const cloudOn = () => !!(CLOUD.url && CLOUD.key) && !window.claude;
 const AUTH = {view:"entrar", msg:"", err:"", busy:false, email:""};
 function lsRead(){ try{ return JSON.parse(localStorage.getItem(LS_KEY) || "null"); }catch(e){ return null; } }
