@@ -450,6 +450,12 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 [data-skin="basico"] .meter.cat > span{box-shadow:none}
 .meter.cat.over{box-shadow:inset 0 0 0 1.5px var(--bad)}
 .pal-pick{display:flex;gap:8px;flex-wrap:wrap}
+.danger-zone{border-color:var(--bad-soft)}
+.danger-zone h2{color:var(--bad)}
+.wipe-opt{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer}
+.wipe-opt:has(input:checked){border-color:var(--bad);background:var(--bad-soft)}
+.wipe-opt input{margin-top:3px}
+.wipe-opt b{display:block}
 .imp-list{display:flex;flex-direction:column;border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
 .imp-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:12px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
 .imp-row:last-child{border-bottom:0}
@@ -834,6 +840,50 @@ async function enterCloud(user){
   render();
   try { await cloudPull(); } catch(e){ console.error(e); setSync("error"); }
 }
+/* ---------- apagar dados (duas confirmações) ---------- */
+function wipeStep1(){
+  const nTx = allTx().length;
+  openModal({title:"Apagar dados", submitLabel:"Continuar", body:`
+    <p style="margin:0">O que você quer apagar?</p>
+    <label class="wipe-opt"><input type="radio" name="scope" value="lancamentos" checked><span><b>Só os lançamentos</b><span class="tiny muted">Apaga os ${nTx} lançamento(s), parcelas e pagamentos de fatura. Mantém contas, cartões, categorias, metas, contas fixas e renda.</span></span></label>
+    <label class="wipe-opt"><input type="radio" name="scope" value="tudo"><span><b>Tudo</b><span class="tiny muted">Apaga lançamentos, contas, cartões, categorias, metas, contas fixas e configurações. O app volta ao início.</span></span></label>
+    <div class="banner" style="margin:0;flex-wrap:wrap"><span style="flex:1 1 200px">Quer guardar uma cópia antes? Assim dá para restaurar depois.</span><button type="button" class="btn sm" data-act="wipe-backup">Baixar backup</button></div>`,
+    onSubmit: () => { const v = fd(); wipeStep2(v.scope==="tudo" ? "tudo" : "lancamentos"); }});
+}
+function wipeStep2(scope){
+  const what = scope==="tudo" ? "<b>todos os seus dados</b>" : "<b>todos os seus lançamentos</b>";
+  openModal({title:"Tem certeza mesmo?", submitLabel:"Apagar definitivamente", body:`
+    <div class="banner bad" style="margin:0">Você vai apagar ${what}${STORE.mode==="cloud"?" da sua conta, em todos os aparelhos":""}. Isso não pode ser desfeito.</div>
+    <div class="field"><label for="m-wipe">Para confirmar, digite APAGAR</label><input id="m-wipe" name="confirm" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>`,
+    onSubmit: async () => {
+      const v = fd(); if ((v.confirm||"").trim().toUpperCase() !== "APAGAR") return mErr("Digite APAGAR para confirmar.");
+      const btn = document.querySelector("#mform button[type=submit]"); if (btn){ btn.disabled = true; btn.textContent = "Apagando…"; }
+      try { await wipeData(scope); closeModal(); toast(scope==="tudo" ? "Todos os dados foram apagados" : "Lançamentos apagados"); UI.view = "geral"; render(); }
+      catch(e){ console.error(e); if (btn){ btn.disabled = false; btn.textContent = "Apagar definitivamente"; } mErr("Não consegui apagar agora. Verifique a internet e tente de novo."); }
+    }});
+}
+async function wipeData(scope){
+  const keys = Object.keys(MONTHS);
+  if (STORE.mode==="cloud"){
+    clearTimeout(flushT); clearTimeout(retryT); if (flushing) { try { await flushing; } catch(e){} }
+    const sb = STORE.sb, uid = STORE.user.id;
+    const r1 = await sb.from("finance_months").delete().eq("user_id", uid); if (r1.error) throw r1.error;
+    if (scope==="tudo"){ const r2 = await sb.from("finance_config").delete().eq("user_id", uid); if (r2.error) throw r2.error; }
+    STORE.dirty = {cfg:false, months:new Set()};
+    MONTHS = {}; if (scope==="tudo"){ CFG = null; STORE.cloudLoaded = true; }
+    cloudCacheWrite(); if (scope==="tudo"){ try { localStorage.removeItem(cacheKey()); } catch(e){} }
+    setSync("ok"); return;
+  }
+  if (STORE.mode==="db"){
+    for (const k of keys) await STORE.db.doc("tx/"+k).delete();
+    if (scope==="tudo") await STORE.db.doc("fin/config").delete();
+    MONTHS = {}; if (scope==="tudo") CFG = null; return;
+  }
+  MONTHS = {};
+  if (scope==="tudo"){ CFG = null; try { localStorage.removeItem(LS_KEY); } catch(e){} }
+  else lsWrite();
+}
+
 async function cloudSignOut(){
   try { await cloudFlush(); } catch(e){}
   try { localStorage.removeItem(cacheKey()); } catch(e){}
@@ -1608,6 +1658,7 @@ function vAjustes(){
       <label class="btn primary" for="importtx-file">Importar lançamentos</label><input id="importtx-file" type="file" accept="application/json,.json" hidden></div>
       <div id="backup-out"></div>
     </section>
+    <section class="card s12 danger-zone"><div class="card-h"><div><h2>Apagar meus dados</h2><div class="sub">Remove lançamentos ou tudo o que você cadastrou${STORE.mode==="cloud"?", inclusive da nuvem e de todos os seus aparelhos":""}. Não dá para desfazer.</div></div><div class="actions"><button class="btn danger" data-act="wipe">Apagar dados…</button></div></div></section>
   </div>`;
 }
 
@@ -2071,6 +2122,8 @@ document.addEventListener("click", e => {
     case "pw-toggle": { const inp = el.parentElement.querySelector("input"); const show = inp.type==="password"; inp.type = show ? "text" : "password"; el.setAttribute("aria-pressed", show); el.setAttribute("aria-label", show ? "Esconder senha" : "Mostrar senha"); el.innerHTML = ico(show ? "eyeoff" : "eye"); inp.focus(); break; }
     case "auth-view": AUTH.view = el.dataset.v; AUTH.err = ""; AUTH.msg = ""; render(); break;
     case "logout": closeModal(); cloudSignOut(); break;
+    case "wipe": wipeStep1(); break;
+    case "wipe-backup": exportBackup(); break;
     case "import-local": { const l = lsRead(); if (l?.cfg){ CFG = normalizeCfg(l.cfg); MONTHS = l.months || {}; if (!CFG.profile?.name && STORE.user?.user_metadata?.name) CFG.profile = {name:STORE.user.user_metadata.name}; saveCfg(); Object.keys(MONTHS).forEach(saveMonth); toast("Dados levados para a sua conta"); render(); } break; }
     case "scrim": case "close": closeModal(); break;
     case "new-tx": txModal(null, {type:el.dataset.type, cardId:el.dataset.card}); break;
