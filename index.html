@@ -235,7 +235,7 @@ a{color:var(--accent)}
 
 .budget-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) auto;gap:14px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
 .budget-row:last-child{border-bottom:0}
-.swatch{width:10px;height:10px;border-radius:3px;flex:none}
+.swatch{width:10px;height:10px;border-radius:3px;flex:none;box-shadow:inset 0 0 0 1px rgba(58,29,32,.18)}
 .subs{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin-top:-4px}
 
 table.t{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
@@ -403,19 +403,20 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 .skin-sw{display:flex;gap:4px}
 .skin-sw i{width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 
-/* Cores das categorias: paleta da Isadora (8 cores) + 8 tons mais escuros, sem repetir */
-:root{--c1:#7D004D;--c2:#4B90BC;--c3:#FF751F;--c4:#9CA040;--c5:#FF5A95;--c6:#035082;--c7:#FCD25B;--c8:#EAED5B;--c9:#AD5015;--c10:#6A6D2C;--c11:#AD3D65;--c12:#336280;--c13:#AB8F3E;--c14:#9FA13E;--c15:#550034;--c16:#023658}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--c1:#AA598B;--c2:#4B90BC;--c3:#FF751F;--c4:#9CA040;--c5:#FF5A95;--c6:#5B8DAE;--c7:#FCD25B;--c8:#EAED5B;--c9:#C75B18;--c10:#7A7D32;--c11:#C74674;--c12:#3A7093;--c13:#C5A447;--c14:#B7B947;--c15:#85456C;--c16:#476E88}}
-:root[data-theme="dark"]{--c1:#AA598B;--c2:#4B90BC;--c3:#FF751F;--c4:#9CA040;--c5:#FF5A95;--c6:#5B8DAE;--c7:#FCD25B;--c8:#EAED5B;--c9:#C75B18;--c10:#7A7D32;--c11:#C74674;--c12:#3A7093;--c13:#C5A447;--c14:#B7B947;--c15:#85456C;--c16:#476E88}
+/* Cores das categorias: paleta da Isadora em tons pastel (8 cores + 8 tons mais fechados), sem repetir */
+:root{--c1:#B46B98;--c2:#97BFD8;--c3:#FFAF7D;--c4:#C6C890;--c5:#FF9FC2;--c6:#6D9AB6;--c7:#FDE5A0;--c8:#F3F5A0;--c9:#C6845B;--c10:#97996B;--c11:#C67793;--c12:#7091A6;--c13:#C4B178;--c14:#BCBD78;--c15:#884C71;--c16:#4E728A}
 :root[data-skin="basico"]{--c1:#2E4BDB;--c2:#E0763A;--c3:#1FA463;--c4:#9A5BD6;--c5:#0E9AA7;--c6:#C9323B;--c7:#E05C9A;--c8:#5B6B8C;--c9:#1F3395;--c10:#985027;--c11:#157043;--c12:#693E92;--c13:#0A6972;--c14:#892228;--c15:#983F69;--c16:#3E495F}
 @media (prefers-color-scheme: dark){:root[data-skin="basico"]:not([data-theme="light"]){--c1:#7F95FF;--c2:#F0955E;--c3:#3CC583;--c4:#B98AF0;--c5:#3FC3CF;--c6:#F06B72;--c7:#F48FBF;--c8:#98A6C8;--c9:#5F70BF;--c10:#B47046;--c11:#2D9462;--c12:#8B68B4;--c13:#2F929B;--c14:#B45056;--c15:#B76B8F;--c16:#727C96}}
 :root[data-skin="basico"][data-theme="dark"]{--c1:#7F95FF;--c2:#F0955E;--c3:#3CC583;--c4:#B98AF0;--c5:#3FC3CF;--c6:#F06B72;--c7:#F48FBF;--c8:#98A6C8;--c9:#5F70BF;--c10:#B47046;--c11:#2D9462;--c12:#8B68B4;--c13:#2F929B;--c14:#B45056;--c15:#B76B8F;--c16:#727C96}
-.meter.cat > span{background:var(--cc)}
+.meter.cat{background:var(--line)}
+.meter.cat > span{background:var(--cc);box-shadow:inset 0 0 0 1px rgba(58,29,32,.10)}
+[data-skin="basico"] .meter.cat{background:var(--surface-2)}
+[data-skin="basico"] .meter.cat > span{box-shadow:none}
 .meter.cat.over{box-shadow:inset 0 0 0 1.5px var(--bad)}
 .pal-pick{display:flex;gap:8px;flex-wrap:wrap}
 .pal-pick label{position:relative;cursor:pointer}
 .pal-pick input{position:absolute;opacity:0;pointer-events:none}
-.pal-pick i{display:block;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.pal-pick i{display:block;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(58,29,32,.22)}
 .pal-pick input:disabled + i{opacity:.22;cursor:not-allowed;background-image:linear-gradient(135deg,transparent 46%,var(--fg) 47%,var(--fg) 53%,transparent 54%)!important}
 .pal-pick input:disabled{cursor:not-allowed}
 .pal-pick input:checked + i{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--fg)}
@@ -540,7 +541,8 @@ const I = {
   chart:'<path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/>',
   gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   left:'<path d="m15 18-6-6 6-6"/>', right:'<path d="m9 18 6-6-6-6"/>', plus:'<path d="M12 5v14M5 12h14"/>', x:'<path d="M18 6 6 18M6 6l12 12"/>',
-  edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/>', swap:'<path d="M7 7h13l-4-4M17 17H4l4 4"/>', check:'<path d="M20 6 9 17l-5-5"/>'
+  edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/>', swap:'<path d="M7 7h13l-4-4M17 17H4l4 4"/>', check:'<path d="M20 6 9 17l-5-5"/>',
+  repeat:'<path d="m17 2 4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>'
 };
 const ico = (n,cls="") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
 
@@ -550,8 +552,8 @@ let MONTHS = {};           // "AAAA-MM" -> [lançamentos]
 const STORE = {mode:"loading", db:null, note:"", writes:{}, dlr:null};
 const UI = {view:"geral", month:mk(todayStr()), cardId:null, walletOpen:false, filt:{type:"",cat:"",src:"",q:""}};
 const LS_KEY = "caixa-pessoal-v1";
-const VIEWS = {geral:"Visão geral", lancamentos:"Lançamentos", contas:"Contas", cartoes:"Cartões", orcamento:"Orçamento", metas:"Metas", patrimonio:"Patrimônio", ajustes:"Ajustes"};
-const VIEW_ICONS = {geral:"home",lancamentos:"list",contas:"bank",cartoes:"card",orcamento:"pie",metas:"target",patrimonio:"chart",ajustes:"gear"};
+const VIEWS = {geral:"Visão geral", lancamentos:"Lançamentos", contas:"Contas", cartoes:"Cartões", fixas:"Contas fixas", orcamento:"Orçamento", metas:"Metas", patrimonio:"Patrimônio", ajustes:"Ajustes"};
+const VIEW_ICONS = {geral:"home",lancamentos:"list",contas:"bank",cartoes:"card",fixas:"repeat",orcamento:"pie",metas:"target",patrimonio:"chart",ajustes:"gear"};
 
 function defaultConfig(income=0, day=5){
   const c = (name,color,budget,subs,kind="despesa") => ({id:uid(),name,color,budget,kind,subs:subs.map(s=>({id:uid(),name:s}))});
@@ -809,7 +811,7 @@ function render(){
   if (STORE.mode==="loading"){ app.innerHTML = `<div class="loading">Carregando suas finanças…</div>`; return; }
   if (!CFG){ app.innerHTML = shell(onboarding()); return; }
   let body = "";
-  try { body = ({geral:vGeral, lancamentos:vLanc, contas:vContas, cartoes:vCartoes, orcamento:vOrc, metas:vMetas, patrimonio:vPatr, ajustes:vAjustes}[UI.view] || vGeral)(); }
+  try { body = ({geral:vGeral, lancamentos:vLanc, contas:vContas, cartoes:vCartoes, fixas:vFixas, orcamento:vOrc, metas:vMetas, patrimonio:vPatr, ajustes:vAjustes}[UI.view] || vGeral)(); }
   catch(e){ console.error(e); body = `<div class="banner bad">Algo deu errado ao montar esta tela: ${esc(e.message)}</div>`; }
   app.innerHTML = shell(body);
 }
@@ -930,7 +932,7 @@ function vGeral(){
   CFG.bills.filter(b=>b.active!==false).forEach(b => due.push({date:dateIn(key,b.day), name:b.name, amount:+b.amount||0, paid:billPaid(b,key), act:`data-act="pay-bill" data-id="${b.id}"`, ent:accById(b.accountId)}));
   due.sort((a,b)=>a.date<b.date?-1:1);
   const dueRows = due.map(d => `<div class="li">${logoHTML(d.ent||{bank:"outro",name:d.name},30)}<div class="grow"><div class="ellip" style="font-weight:600">${esc(d.name)}</div><div class="tiny muted">vence ${dBR(d.date)}</div></div><div class="amt">${fmt(d.amount)}</div>${d.paid?`<span class="chip good">Pago</span>`:`<button class="btn sm" ${d.act}>Pagar</button>`}</div>`).join("");
-  const dueCard = `<section class="card s5"><div class="card-h"><div><h2>Vencimentos de ${MESES[+key.slice(5)-1]}</h2><div class="sub">${due.filter(d=>d.paid).length} de ${due.length} pagos</div></div></div>${dueRows?`<div class="list">${dueRows}</div>`:`<div class="empty">Nada para pagar neste mês.</div>`}</section>`;
+  const dueCard = `<section class="card s5"><div class="card-h"><div><h2>Vencimentos de ${MESES[+key.slice(5)-1]}</h2><div class="sub">${due.filter(d=>d.paid).length} de ${due.length} pagos</div></div><div class="actions"><button class="btn sm ghost" data-act="nav" data-v="fixas">Contas fixas</button></div></div>${dueRows?`<div class="list">${dueRows}</div>`:`<div class="empty">Nada para pagar neste mês.</div>`}</section>`;
 
   // metas + patrimônio
   const g = CFG.goals[0];
@@ -1147,6 +1149,45 @@ function vCartoes(){
   </div>`;
 }
 
+/* ============ Contas fixas ============ */
+function vFixas(){
+  const key = UI.month, td = todayStr(), cur = mk(td);
+  const list = CFG.bills.slice().sort((a,b)=>(+a.day)-(+b.day));
+  const act = list.filter(b=>b.active!==false);
+  const total = sum(act, b=>+b.amount||0);
+  const paidT = sum(act.filter(b=>billPaid(b,key)), b=>+b.amount||0);
+  const pend = act.filter(b=>!billPaid(b,key));
+  const nxt = pend.map(b=>({b, d:dateIn(key,b.day)})).filter(x=>key!==cur || x.d>=td).sort((x,y)=>x.d<y.d?-1:1)[0];
+  const status = b => {
+    if (b.active===false) return `<span class="chip">Pausada</span>`;
+    const t = txIn(key).find(x=>x.billId===b.id);
+    if (t) return `<span class="chip good">Paga em ${dBR(t.date)}</span>`;
+    const d = dateIn(key,b.day);
+    if (key<cur || (key===cur && d<td)) return `<span class="chip bad">Atrasada</span>`;
+    if (key===cur && d===td) return `<span class="chip warn">Vence hoje</span>`;
+    return `<span class="chip">Vence ${dBR(d)}</span>`;
+  };
+  const rows = list.map(b => { const c = catById(b.catId), a = accById(b.accountId), paid = billPaid(b,key);
+    return `<div class="li">${logoHTML(a||{bank:"outro",name:b.name},34)}
+      <div class="grow"><div class="ellip" style="font-weight:600">${esc(b.name)}</div><div class="tiny muted ellip">todo dia ${b.day}${a?` · ${esc(a.name)}`:""}</div></div>
+      ${c?`<span class="chip catc"><span class="swatch" style="background:${catColor(c)};width:7px;height:7px"></span>${esc(c.name)}</span>`:""}
+      ${status(b)}<div class="amt" style="min-width:6.5em;text-align:right">${fmt(b.amount)}</div>
+      <div class="row" style="gap:6px">${b.active!==false && !paid?`<button class="btn sm primary" data-act="pay-bill" data-id="${b.id}">Pagar</button>`:""}<button class="icon-btn" data-act="edit-bill" data-id="${b.id}" aria-label="Editar ${esc(b.name)}">${ico("edit")}</button></div>
+    </div>`; }).join("");
+  const inc = +CFG.income.amount||0;
+  return `<div class="grid">
+    <section class="s12 statstrip">
+      <div><span class="eyebrow">Total por mês</span><span class="v money">${fmt(total)}</span><span class="tiny muted">${inc>0?Math.round(total/inc*100)+"% do salário":""}</span></div>
+      <div><span class="eyebrow">Pago em ${mShort(key)}</span><span class="v money">${fmt(paidT)}</span><span class="tiny muted">${act.length-pend.length} de ${act.length}</span></div>
+      <div><span class="eyebrow">Falta pagar</span><span class="v money">${fmt(total-paidT)}</span><span class="tiny muted">${pend.length} ${pend.length===1?"conta":"contas"}</span></div>
+      <div><span class="eyebrow">Próximo vencimento</span><span class="v money">${nxt?dBR(nxt.d):"—"}</span><span class="tiny muted ellip">${nxt?esc(nxt.b.name)+" · "+fmt(nxt.b.amount):"nada pendente"}</span></div>
+    </section>
+    <section class="card s12"><div class="card-h"><div><h2>Contas fixas de ${MESES[+key.slice(5)-1]}</h2><div class="sub">Contas que se repetem todo mês. Entram no "Livre para gastar" e nos vencimentos.</div></div><div class="actions"><button class="btn sm primary" data-act="new-bill">${ico("plus")}Conta fixa</button></div></div>
+      ${rows?`<div class="list">${rows}</div>`:`<div class="empty">Nenhuma conta fixa ainda.<span class="tiny">Ex.: celular, internet, academia, transporte.</span><button class="btn primary sm" data-act="new-bill">Adicionar conta fixa</button></div>`}
+    </section>
+  </div>`;
+}
+
 /* ============ Orçamento ============ */
 function vOrc(){
   const key = UI.month, sp = spendItems(key), P = monthPlan(key);
@@ -1236,7 +1277,6 @@ function vPatr(){
 function vAjustes(){
   const accOpts = sel => `<option value="">—</option>`+CFG.accounts.map(a=>`<option value="${a.id}" ${a.id===sel?"selected":""}>${esc(a.name)}</option>`).join("");
   const cats = CFG.categories.map(c => `<div class="li"><span class="swatch" style="background:${catColor(c)}"></span><div class="grow"><div style="font-weight:600">${esc(c.name)} <span class="chip">${c.kind==="receita"?"receita":"despesa"}</span></div><div class="tiny muted ellip">${c.subs.map(s=>esc(s.name)).join(" · ")||"sem subcategorias"}</div></div>${c.kind==="despesa"?`<span class="tiny muted money">limite ${fmt(c.budget)}</span>`:""}<button class="btn sm" data-act="edit-cat" data-id="${c.id}">${ico("edit")}Editar</button></div>`).join("");
-  const bills = CFG.bills.map(b => `<div class="li">${logoHTML(accById(b.accountId)||{bank:"outro",name:b.name},28)}<div class="grow"><div style="font-weight:600">${esc(b.name)}</div><div class="tiny muted">dia ${b.day} · ${esc(catById(b.catId)?.name||"")}${b.active===false?" · pausada":""}</div></div><span class="amt">${fmt(b.amount)}</span><button class="btn sm" data-act="edit-bill" data-id="${b.id}">${ico("edit")}Editar</button></div>`).join("");
   return `<div class="grid">
     <section class="card s6"><div class="card-h"><div><h2>Você, renda e meta</h2><div class="sub">Usados na saudação e no cálculo de quanto você pode gastar</div></div></div>
       <form class="stack" data-form="income" style="gap:12px">
@@ -1252,13 +1292,10 @@ function vAjustes(){
         <div><button class="btn primary" type="submit">Salvar</button></div>
       </form>
     </section>
-    <section class="card s6"><div class="card-h"><div><h2>Contas fixas</h2><div class="sub">Aparecem nos vencimentos e entram no cálculo do mês</div></div><div class="actions"><button class="btn sm" data-act="new-bill">${ico("plus")}Conta fixa</button></div></div>
-      ${bills?`<div class="list">${bills}</div>`:`<div class="empty">Nenhuma conta fixa. Adicione se tiver algo recorrente, como celular ou transporte.</div>`}
-    </section>
-    <section class="card s12"><div class="card-h"><div><h2>Categorias e subcategorias</h2><div class="sub">Personalize nomes, cores, limites e subcategorias</div></div><div class="actions"><button class="btn sm" data-act="new-cat">${ico("plus")}Categoria</button></div></div><div class="list">${cats}</div></section>
-    <section class="card s12"><div class="card-h"><div><h2>Aparência</h2><div class="sub">Escolha o tema do app</div></div></div>
+    <section class="card s6"><div class="card-h"><div><h2>Aparência</h2><div class="sub">Escolha o tema do app</div></div></div>
       <div class="skin-pick">${Object.entries(SKINS).map(([k,v])=>`<button class="skin-opt" data-act="skin" data-m="${k}" aria-pressed="${currentSkin()===k}"><span class="skin-sw">${v.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</span>${v.label}</button>`).join("")}</div>
     </section>
+    <section class="card s12"><div class="card-h"><div><h2>Categorias e subcategorias</h2><div class="sub">Personalize nomes, cores, limites e subcategorias</div></div><div class="actions"><button class="btn sm" data-act="new-cat">${ico("plus")}Categoria</button></div></div><div class="list">${cats}</div></section>
     <section class="card s12"><div class="card-h"><div><h2>Backup</h2><div class="sub">${STORE.mode==="db"?"Seus dados ficam salvos na sua conta Claude. O backup é uma cópia extra.":"Seus dados ficam só neste navegador. Guarde um backup de vez em quando."}</div></div></div>
       <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="export">Baixar backup (.json)</button>
       <label class="btn" for="import-file">Restaurar de um backup</label><input id="import-file" type="file" accept="application/json,.json" hidden></div>
