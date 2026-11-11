@@ -403,19 +403,21 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 .skin-sw{display:flex;gap:4px}
 .skin-sw i{width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 
-/* Cores das categorias: sempre da paleta do tema */
-:root{--c1:#7A1E2C;--c2:#2F7EB5;--c3:#EE6A2C;--c4:#8D9B2C;--c5:#D62A7E;--c6:#2A9D8F;--c7:#6FA8DC;--c8:#9C5B8F}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--c1:#FF9C86;--c2:#7DB9E8;--c3:#FF8A4C;--c4:#B5C24A;--c5:#FF6FAE;--c6:#5CC8B8;--c7:#A9CBEF;--c8:#C994BE}}
-:root[data-theme="dark"]{--c1:#FF9C86;--c2:#7DB9E8;--c3:#FF8A4C;--c4:#B5C24A;--c5:#FF6FAE;--c6:#5CC8B8;--c7:#A9CBEF;--c8:#C994BE}
-:root[data-skin="basico"]{--c1:#2E4BDB;--c2:#E0763A;--c3:#1FA463;--c4:#9A5BD6;--c5:#0E9AA7;--c6:#C9323B;--c7:#E05C9A;--c8:#5B6B8C}
-@media (prefers-color-scheme: dark){:root[data-skin="basico"]:not([data-theme="light"]){--c1:#7F95FF;--c2:#F0955E;--c3:#3CC583;--c4:#B98AF0;--c5:#3FC3CF;--c6:#F06B72;--c7:#F48FBF;--c8:#98A6C8}}
-:root[data-skin="basico"][data-theme="dark"]{--c1:#7F95FF;--c2:#F0955E;--c3:#3CC583;--c4:#B98AF0;--c5:#3FC3CF;--c6:#F06B72;--c7:#F48FBF;--c8:#98A6C8}
+/* Cores das categorias: paleta da Isadora (8 cores) + 8 tons mais escuros, sem repetir */
+:root{--c1:#7D004D;--c2:#4B90BC;--c3:#FF751F;--c4:#9CA040;--c5:#FF5A95;--c6:#035082;--c7:#FCD25B;--c8:#EAED5B;--c9:#AD5015;--c10:#6A6D2C;--c11:#AD3D65;--c12:#336280;--c13:#AB8F3E;--c14:#9FA13E;--c15:#550034;--c16:#023658}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--c1:#AA598B;--c2:#4B90BC;--c3:#FF751F;--c4:#9CA040;--c5:#FF5A95;--c6:#5B8DAE;--c7:#FCD25B;--c8:#EAED5B;--c9:#C75B18;--c10:#7A7D32;--c11:#C74674;--c12:#3A7093;--c13:#C5A447;--c14:#B7B947;--c15:#85456C;--c16:#476E88}}
+:root[data-theme="dark"]{--c1:#AA598B;--c2:#4B90BC;--c3:#FF751F;--c4:#9CA040;--c5:#FF5A95;--c6:#5B8DAE;--c7:#FCD25B;--c8:#EAED5B;--c9:#C75B18;--c10:#7A7D32;--c11:#C74674;--c12:#3A7093;--c13:#C5A447;--c14:#B7B947;--c15:#85456C;--c16:#476E88}
+:root[data-skin="basico"]{--c1:#2E4BDB;--c2:#E0763A;--c3:#1FA463;--c4:#9A5BD6;--c5:#0E9AA7;--c6:#C9323B;--c7:#E05C9A;--c8:#5B6B8C;--c9:#1F3395;--c10:#985027;--c11:#157043;--c12:#693E92;--c13:#0A6972;--c14:#892228;--c15:#983F69;--c16:#3E495F}
+@media (prefers-color-scheme: dark){:root[data-skin="basico"]:not([data-theme="light"]){--c1:#7F95FF;--c2:#F0955E;--c3:#3CC583;--c4:#B98AF0;--c5:#3FC3CF;--c6:#F06B72;--c7:#F48FBF;--c8:#98A6C8;--c9:#5F70BF;--c10:#B47046;--c11:#2D9462;--c12:#8B68B4;--c13:#2F929B;--c14:#B45056;--c15:#B76B8F;--c16:#727C96}}
+:root[data-skin="basico"][data-theme="dark"]{--c1:#7F95FF;--c2:#F0955E;--c3:#3CC583;--c4:#B98AF0;--c5:#3FC3CF;--c6:#F06B72;--c7:#F48FBF;--c8:#98A6C8;--c9:#5F70BF;--c10:#B47046;--c11:#2D9462;--c12:#8B68B4;--c13:#2F929B;--c14:#B45056;--c15:#B76B8F;--c16:#727C96}
 .meter.cat > span{background:var(--cc)}
 .meter.cat.over{box-shadow:inset 0 0 0 1.5px var(--bad)}
 .pal-pick{display:flex;gap:8px;flex-wrap:wrap}
 .pal-pick label{position:relative;cursor:pointer}
 .pal-pick input{position:absolute;opacity:0;pointer-events:none}
 .pal-pick i{display:block;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.pal-pick input:disabled + i{opacity:.22;cursor:not-allowed;background-image:linear-gradient(135deg,transparent 46%,var(--fg) 47%,var(--fg) 53%,transparent 54%)!important}
+.pal-pick input:disabled{cursor:not-allowed}
 .pal-pick input:checked + i{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--fg)}
 .pal-pick input:focus-visible + i{outline:2px solid var(--accent);outline-offset:4px}
 /* saudação */
@@ -740,7 +742,18 @@ function savedIn(key){
   }
   return r2(s);
 }
-function catColor(c){ if (!c) return "var(--c8)"; const i = Number.isInteger(c.pal) ? c.pal : Math.max(0, CFG.categories.indexOf(c)); return `var(--c${(i%8)+1})`; }
+const PAL_N = 16;
+// Cada categoria ganha uma cor só dela (dentro de despesas e dentro de receitas)
+function palMap(){
+  const map = {};
+  for (const kind of ["despesa","receita"]){
+    const cats = CFG.categories.filter(c=>c.kind===kind), used = new Set();
+    cats.forEach(c => { if (Number.isInteger(c.pal) && c.pal>=0 && c.pal<PAL_N && !used.has(c.pal)){ map[c.id] = c.pal; used.add(c.pal); } });
+    cats.forEach((c,idx) => { if (map[c.id]==null){ let i = 0; while (i<PAL_N && used.has(i)) i++; if (i>=PAL_N) i = idx%PAL_N; map[c.id] = i; used.add(i); } });
+  }
+  return map;
+}
+function catColor(c){ if (!c) return "var(--c8)"; const i = palMap()[c.id] ?? 0; return `var(--c${i+1})`; }
 const budgetOf = (cat, key) => CFG.budgetOverrides?.[key]?.[cat.id] ?? (+cat.budget||0);
 const billPaid = (b, key) => txIn(key).some(t=>t.billId===b.id);
 
@@ -1533,11 +1546,12 @@ function budgetModal(c){
 function catModal(c){
   const isNew = !c; c = c ? clone(c) : {name:"", color:"#5A6FD8", budget:0, kind:"despesa", subs:[]};
   const used = isNew ? 0 : allTx().filter(t=>t.catId===c.id).length;
-  const curPal = Number.isInteger(c.pal) ? c.pal : (isNew ? CFG.categories.length%8 : Math.max(0,CFG.categories.findIndex(x=>x.id===c.id))%8);
+  const pm = palMap(), owner = {}; CFG.categories.forEach(x => { if (x.id!==c.id && x.kind===c.kind) owner[pm[x.id]] = x.name; });
+  let curPal = isNew ? -1 : pm[c.id]; if (curPal==null || curPal<0){ curPal = 0; while (curPal<PAL_N && owner[curPal]!=null) curPal++; if (curPal>=PAL_N) curPal = 0; }
   openModal({title:isNew?"Nova categoria":"Editar categoria", body:`
     <div class="frow"><div class="field"><label for="m-cname">Nome</label><input id="m-cname" name="name" value="${esc(c.name)}"></div>
     <div class="field"><label for="m-ckind">Tipo</label><select id="m-ckind" name="kind"><option value="despesa" ${c.kind==="despesa"?"selected":""}>Despesa</option><option value="receita" ${c.kind==="receita"?"selected":""}>Receita</option></select></div></div>
-    <div class="frow"><div class="field"><span class="flabel">Cor</span><div class="pal-pick" role="radiogroup" aria-label="Cor da categoria">${[0,1,2,3,4,5,6,7].map(i=>`<label><input type="radio" name="pal" value="${i}" ${curPal===i?"checked":""} aria-label="Cor ${i+1}"><i style="background:var(--c${i+1})"></i></label>`).join("")}</div></div>
+    <div class="frow"><div class="field"><span class="flabel">Cor</span><div class="pal-pick" role="radiogroup" aria-label="Cor da categoria">${Array.from({length:PAL_N},(_,i)=>`<label title="${owner[i]!=null?"Em uso: "+esc(owner[i]):"Cor "+(i+1)}"><input type="radio" name="pal" value="${i}" ${curPal===i?"checked":""} ${owner[i]!=null?"disabled":""} aria-label="${owner[i]!=null?"Cor em uso por "+esc(owner[i]):"Cor "+(i+1)}"><i style="background:var(--c${i+1})"></i></label>`).join("")}</div><span class="hint">Cores riscadas já estão em outra categoria.</span></div>
     <div class="field"><label for="m-cbud">Limite mensal (despesas)</label><input id="m-cbud" name="budget" inputmode="decimal" value="${fmtIn(c.budget)}"></div></div>
     <div class="field"><label for="m-csubs">Subcategorias</label><textarea id="m-csubs" name="subs" rows="4" placeholder="Uma por linha">${esc(c.subs.map(s=>s.name).join("\n"))}</textarea><span class="hint">Uma por linha. Renomear mantém os lançamentos; apagar uma linha deixa os lançamentos dela sem subcategoria.</span></div>`,
     del: isNew ? null : () => { CFG.categories = CFG.categories.filter(x=>x.id!==c.id); for (const k in MONTHS){ let ch=false; MONTHS[k].forEach(t=>{ if (t.catId===c.id){ t.catId=""; t.subId=""; ch=true; } }); if (ch) saveMonth(k); } saveCfg(); toast("Categoria excluída"); },
