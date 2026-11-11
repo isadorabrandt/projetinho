@@ -172,12 +172,19 @@ a{color:var(--accent)}
 .wc-bot{display:flex;align-items:flex-end;justify-content:space-between;gap:4cqw}
 .wc-num{font:500 4.5cqw/1 ui-monospace,"SF Mono",Menlo,Consolas,monospace;letter-spacing:.14em;opacity:.92;text-shadow:0 1px 0 rgba(0,0,0,.2)}
 .wc-net svg{height:9.5cqw;width:auto;display:block}
-.wallet-sel{animation:rise .45s cubic-bezier(.2,.7,.2,1)}
-.pile{margin-top:5cqw}
-.pile-card{display:block;width:100%;padding:0;border:0;background:none;cursor:pointer;text-align:left;border-radius:4.6cqw;transition:transform .25s cubic-bezier(.2,.7,.2,1)}
-.pile-card + .pile-card{margin-top:calc(-100cqw / 1.586 + 16cqw)}
-.pile-card:hover{transform:translateY(-2.2cqw)}
-.pile-card:focus-visible{outline-offset:3px}
+.ws-card{display:block;width:100%;padding:0;border:0;background:none;cursor:pointer;text-align:left;border-radius:4.6cqw;position:relative}
+.ws-card:focus-visible{outline-offset:3px}
+/* pilha fechada: cada cartão mostra só a faixa de cima; o último aparece inteiro */
+.ws-stack .ws-card + .ws-card{margin-top:calc(-100cqw / 1.586 + 18cqw)}
+.ws-stack .ws-card{transition:transform .25s cubic-bezier(.2,.7,.2,1)}
+.ws-stack .ws-card:hover{transform:translateY(-2.4cqw)}
+/* cartão aberto + montinho embaixo */
+.ws-pile{position:relative;margin-top:4cqw;overflow:hidden;
+  -webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
+.ws-pile .ws-card{position:absolute;left:3cqw;right:3cqw;width:auto}
+.ws-pile .ws-card .wcard{box-shadow:0 0 0 .5px rgba(0,0,0,.3),0 -1px 6px rgba(0,0,0,.12)}
+.ws-pile .ws-card:hover{filter:brightness(1.06)}
+.wallet-hint{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}
 @keyframes rise{from{transform:translateY(14%) scale(.96);opacity:.4}to{transform:none;opacity:1}}
 .wallet-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;margin-top:12px;font-size:12.5px;color:var(--muted)}
 .wallet-meta span{white-space:nowrap}
@@ -510,7 +517,7 @@ const ico = (n,cls="") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" s
 let CFG = null;            // configuração (contas, cartões, categorias, renda, metas, contas fixas)
 let MONTHS = {};           // "AAAA-MM" -> [lançamentos]
 const STORE = {mode:"loading", db:null, note:"", writes:{}, dlr:null};
-const UI = {view:"geral", month:mk(todayStr()), cardId:null, filt:{type:"",cat:"",src:"",q:""}};
+const UI = {view:"geral", month:mk(todayStr()), cardId:null, walletOpen:false, filt:{type:"",cat:"",src:"",q:""}};
 const LS_KEY = "caixa-pessoal-v1";
 const VIEWS = {geral:"Visão geral", lancamentos:"Lançamentos", contas:"Contas", cartoes:"Cartões", orcamento:"Orçamento", metas:"Metas", patrimonio:"Patrimônio", ajustes:"Ajustes"};
 const VIEW_ICONS = {geral:"home",lancamentos:"list",contas:"bank",cartoes:"card",orcamento:"pie",metas:"target",patrimonio:"chart",ajustes:"gear"};
@@ -1013,13 +1020,32 @@ function walletCard(c, opts={}){
     <div class="wc-bot"><span class="wc-num">•••• ${last||"••••"}</span><span class="wc-net">${NET[c.network]?.svg||""}</span></div>
   </div>`;
 }
-function walletStack(selId){
-  const sel = cardById(selId) || CFG.cards[0];
-  const rest = CFG.cards.filter(c=>c.id!==sel.id);
+function walletStack(selId, open){
+  const cards = CFG.cards;
+  if (!open){
+    return `<div class="wallet ws-stack" id="wallet">${cards.map(c=>`<button class="ws-card" data-act="sel-card" data-id="${c.id}" data-wid="${c.id}" aria-label="Abrir ${esc(c.name)}">${walletCard(c)}</button>`).join("")}</div>`;
+  }
+  const sel = cardById(selId) || cards[0];
+  const rest = cards.filter(c=>c.id!==sel.id);
+  const step = 6.5;
   return `<div class="wallet" id="wallet">
-    <div class="wallet-sel" data-tilt>${walletCard(sel)}</div>
-    ${rest.length?`<div class="pile">${rest.map(c=>`<button class="pile-card" data-act="sel-card" data-id="${c.id}" aria-label="Abrir ${esc(c.name)}">${walletCard(c)}</button>`).join("")}</div>`:""}
+    <div data-tilt><button class="ws-card" data-act="sel-card" data-id="${sel.id}" data-wid="${sel.id}" aria-label="Fechar ${esc(sel.name)} e voltar à pilha" aria-expanded="true">${walletCard(sel)}</button></div>
+    ${rest.length?`<div class="ws-pile" style="height:${(rest.length-1)*step+11}cqw">${rest.map((c,i)=>`<button class="ws-card" style="top:${i*step}cqw" data-act="sel-card" data-id="${c.id}" data-wid="${c.id}" aria-label="Abrir ${esc(c.name)}">${walletCard(c)}</button>`).join("")}</div>`:""}
   </div>`;
+}
+// Animação de deslizar entre pilha e cartão aberto (técnica FLIP)
+function walletFlip(change){
+  const before = {};
+  document.querySelectorAll("[data-wid]").forEach(el => before[el.dataset.wid] = el.getBoundingClientRect());
+  change();
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  document.querySelectorAll("[data-wid]").forEach(el => {
+    const b = before[el.dataset.wid]; if (!b || !el.animate) return;
+    const a = el.getBoundingClientRect(); const dx = b.left-a.left, dy = b.top-a.top, sx = b.width/a.width;
+    if (Math.abs(dx)<1 && Math.abs(dy)<1 && Math.abs(sx-1)<.01) return;
+    el.style.transformOrigin = "top left";
+    el.animate([{transform:`translate(${dx}px,${dy}px) scale(${sx})`},{transform:"none"}],{duration:480,easing:"cubic-bezier(.2,.8,.2,1)"});
+  });
 }
 
 /* ============ Cartões ============ */
@@ -1040,9 +1066,10 @@ function vCartoes(){
       <div><span class="eyebrow">Faturas de ${mShort(key)}</span><span class="v money">${fmt(sum(CFG.cards,x=>invoiceOf(x,key).total))}</span></div>
     </section>
     <section class="card s5" style="gap:14px">
-      <div class="card-h"><div><h2>Carteira</h2><div class="sub">Toque em um cartão para abrir</div></div><div class="actions"><button class="btn sm" data-act="new-card">${ico("plus")}Cartão</button></div></div>
-      ${walletStack(c.id)}
-      <div class="wallet" style="margin-top:-2px"><div class="wallet-meta"><span>Disponível <b class="money">${fmt(Math.max(0,c.limit-u))}</b></span><span>Limite <b class="money">${fmt(c.limit)}</b></span><span>Fecha <b>${c.closeDay}</b> · vence <b>${c.dueDay}</b></span></div></div>
+      <div class="card-h"><div><h2>Carteira</h2><div class="sub">${CFG.cards.length} ${CFG.cards.length===1?"cartão":"cartões"}</div></div><div class="actions"><button class="btn sm" data-act="new-card">${ico("plus")}Cartão</button></div></div>
+      ${walletStack(c.id, UI.walletOpen)}
+      ${UI.walletOpen?"":`<div class="wallet-hint">Toque em um cartão para ver inteiro</div>`}
+      <div class="wallet" style="margin-top:-2px" ${UI.walletOpen?"":"hidden"}><div class="wallet-meta"><span>Disponível <b class="money">${fmt(Math.max(0,c.limit-u))}</b></span><span>Limite <b class="money">${fmt(c.limit)}</b></span><span>Fecha <b>${c.closeDay}</b> · vence <b>${c.dueDay}</b></span></div></div>
     </section>
     <section class="card s7">
       <div class="card-h">${logoHTML(c,34)}<div><h2>${esc(c.name)}</h2><div class="sub">Fatura de ${mShort(key)} · fecha ${dBR(inv.closeDate)} · vence ${dBR(inv.dueDate)}</div></div>
@@ -1565,8 +1592,8 @@ document.addEventListener("click", e => {
     case "adjust": adjustModal(accById(id)); break;
     case "new-card": cardModal(); break;
     case "edit-card": cardModal(cardById(id)); break;
-    case "open-card": UI.cardId = id; UI.view = "cartoes"; render(); break;
-    case "sel-card": UI.cardId = id; render(); break;
+    case "open-card": UI.cardId = id; UI.walletOpen = true; UI.view = "cartoes"; render(); break;
+    case "sel-card": walletFlip(() => { if (UI.walletOpen && UI.cardId===id) UI.walletOpen = false; else { UI.cardId = id; UI.walletOpen = true; } render(); }); break;
     case "pay-invoice": payInvoiceModal(cardById(id), el.dataset.k); break;
     case "pay-bill": payBill(CFG.bills.find(b=>b.id===id)); break;
     case "salary": salaryModal(); break;
