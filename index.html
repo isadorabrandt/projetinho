@@ -73,12 +73,35 @@ a{color:var(--accent)}
 .store-pill{display:inline-flex;align-items:center;gap:6px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
 .dot.ok{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
-.auth-wrap{min-height:100vh;display:grid;place-items:center;padding-block:32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.auth-card{width:100%;max-width:420px;gap:16px;padding:24px}
-.auth-head{display:flex;align-items:center;gap:14px}
-.auth-head h1{font-size:26px;color:var(--accent)}
-.auth-head .muted{font-size:13px}
-.auth-logo{width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(90,50,10,.28));flex:none}
+.auth2{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);background:var(--bg)}
+.auth-hero{--hero-ink:#FFF4E2;position:relative;overflow:hidden;color:var(--hero-ink);background:var(--hero);display:flex;align-items:center;justify-content:center;
+  padding:48px max(32px,env(safe-area-inset-left,0px))}
+.auth-hero::before,.auth-hero::after{content:"";position:absolute;border-radius:50%;filter:blur(70px);opacity:.28;pointer-events:none}
+.auth-hero::before{width:420px;height:420px;background:var(--glow1);top:-140px;right:-120px}
+.auth-hero::after{width:360px;height:360px;background:var(--glow2);bottom:-150px;left:-110px}
+.auth-hero-in{position:relative;z-index:1;max-width:400px;display:flex;flex-direction:column;gap:18px}
+.auth-coin{width:132px;height:132px;object-fit:contain;filter:drop-shadow(0 18px 22px rgba(0,0,0,.35));animation:coin 6s ease-in-out infinite}
+@keyframes coin{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+.auth-hero h1{font-size:44px;line-height:1.02;color:var(--hero-ink);font-weight:900}
+.auth-tag{margin:0;font-size:17px;opacity:.9;max-width:28ch}
+.auth-points{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:14px;opacity:.92}
+.auth-points li{display:flex;gap:10px;align-items:center}
+.auth-points li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--hero-ink);opacity:.8;flex:none}
+.auth-panel{display:flex;align-items:center;justify-content:center;padding-block:40px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.auth-form-wrap{width:100%;max-width:380px;display:flex;flex-direction:column;gap:18px}
+.auth-form-wrap h2{font-size:26px;font-weight:800;color:var(--fg)}
+.auth-form-wrap .lead{margin:6px 0 0;color:var(--muted)}
+.auth-switch{font-size:13.5px;color:var(--muted);text-align:center}
+.auth-switch button{border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+.auth-form-wrap .field input{padding:12px 14px;border-radius:12px;background:var(--surface)}
+.auth-form-wrap .btn.primary{padding:12px 16px;font-size:15px}
+.link-btn{border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer;align-self:flex-end;padding:0;margin-top:-6px}
+.link-btn:hover{color:var(--accent)}
+.pw{position:relative;display:flex}
+.pw input{padding-right:46px!important;flex:1}
+.pw-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;background:none;color:var(--muted);border-radius:10px;cursor:pointer;display:grid;place-items:center}
+.pw-eye:hover{color:var(--accent);background:var(--surface-2)}
+.pw-eye svg{width:19px;height:19px}
 .theme-row{display:flex;gap:4px}
 .theme-row button{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 0;cursor:pointer;font-size:12px}
 .theme-row button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
@@ -206,7 +229,7 @@ a{color:var(--accent)}
 .li.click{cursor:pointer;border-radius:8px}
 .li.click:hover{background:var(--surface-2)}
 .li .amt{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
-.daygroup{font-size:12px;color:var(--muted);font-weight:600;padding:12px 4px 2px;text-transform:capitalize}
+.daygroup{font-size:12px;color:var(--muted);font-weight:600;padding:12px 4px 2px}
 
 .acc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 .acc-tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0;box-shadow:var(--shadow)}
@@ -258,6 +281,7 @@ table.t th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:va
 .filters{display:flex;gap:8px;flex-wrap:wrap}
 .filters select,.filters input{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 10px;min-width:0}
 .filters input{flex:1 1 180px}
+.filt-sel{display:contents}
 
 /* Modal */
 .scrim{position:fixed;inset:0;background:rgba(10,14,30,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;z-index:50}
@@ -287,6 +311,12 @@ table.t th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:va
 
 
 /* ===== Tema Minhas Finanças ===== */
+:root{--hero:#7A1E2C;--glow1:#FF9FC2;--glow2:#97BFD8}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--hero:#3E1A21}}
+:root[data-theme="dark"]{--hero:#3E1A21}
+:root[data-skin="basico"]{--hero:#1F2F8F;--glow1:#7F95FF;--glow2:#3CC583}
+@media (prefers-color-scheme: dark){:root[data-skin="basico"]:not([data-theme="light"]){--hero:#151C3D}}
+:root[data-skin="basico"][data-theme="dark"]{--hero:#151C3D}
 body{background:var(--bg)}
 .hero-card{border-top:0;position:relative;overflow:hidden;padding-top:24px}
 .hero-card::before{content:"";position:absolute;inset:0 0 auto;height:6px;background:repeating-linear-gradient(90deg,var(--sky) 0 22px,transparent 22px 44px)}
@@ -337,7 +367,7 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 .acc-tile{border:1.5px solid var(--line);border-radius:var(--r)}
 .add-tile{border:2px dashed var(--line);background:transparent}
 .add-tile:hover{border-color:var(--accent);color:var(--accent)}
-.daygroup{color:var(--accent);font-family:var(--f-body);font-size:12px;font-weight:600;text-transform:capitalize}
+.daygroup{color:var(--accent);font-family:var(--f-body);font-size:12px;font-weight:600}
 .banner.info{background:var(--accent-soft);color:var(--accent)}
 .banner{border-radius:14px}
 .field input,.field select,.field textarea{background:var(--surface-2);border:1.5px solid var(--line);border-radius:12px}
@@ -394,7 +424,7 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 [data-skin="basico"] .card,[data-skin="basico"] .acc-tile{border-width:1px}
 [data-skin="basico"] .hero-card::before{display:none}
 [data-skin="basico"] .hero-card{padding-top:18px}
-[data-skin="basico"] .daygroup{font-family:var(--f-body);font-size:12px;font-weight:600;color:var(--muted);text-transform:capitalize}
+[data-skin="basico"] .daygroup{font-family:var(--f-body);font-size:12px;font-weight:600;color:var(--muted)}
 [data-skin="basico"] .field input,[data-skin="basico"] .field select,[data-skin="basico"] .field textarea{border-width:1px;border-radius:9px}
 [data-skin="basico"] .modal{border-radius:18px;border-width:1px}
 [data-skin="basico"] .modal-h h3{font-size:17px}
@@ -435,24 +465,87 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 .greet input{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;min-width:0;flex:1 1 180px;max-width:280px}
 .rate-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 @media (max-width:1100px){.s8,.s7,.s6,.s5,.s4,.s3{grid-column:span 12}}
+.mtop,.tabbar{display:none}
+.more-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.more-item{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 6px;border:1.5px solid var(--line);border-radius:16px;background:var(--surface);cursor:pointer;font-weight:600;font-size:13px;color:var(--fg)}
+.more-item svg{width:22px;height:22px;color:var(--accent)}
+.more-item[aria-current="page"]{border-color:var(--accent);background:var(--accent-soft)}
+@keyframes sheet{from{transform:translateY(100%)}to{transform:none}}
 @media (max-width:820px){
-  .shell{grid-template-columns:minmax(0,1fr)}
-  .side{position:sticky;top:0;height:auto;flex-direction:row;align-items:center;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-right:0;border-bottom:1px solid var(--line);z-index:20;gap:10px;overflow-x:auto}
-  .brand small,.brand b,.nav-label,.side-foot{display:none}
-  .nav{flex-direction:row}
-  .nav button{white-space:nowrap}
-  .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px}
-  .big{font-size:32px}
-  .topbar h1,.monthnav h1{font-size:21px}
+  .side{display:none}
+  .shell{grid-template-columns:minmax(0,1fr);min-height:0}
+  .mtop{display:flex;align-items:center;gap:10px;position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:31;background:var(--bg)}
+  .mtop-logo{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(90,50,10,.25))}
+  .mtop b{font:700 16px var(--f-display);color:var(--fg);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mtop-sync{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);white-space:nowrap}
+  .tabbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:end;position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:color-mix(in srgb,var(--surface) 94%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+    padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  .tabbar > button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;min-height:48px;color:var(--muted);font:600 10.5px var(--f-body);cursor:pointer;border-radius:12px}
+  .tabbar > button svg{width:22px;height:22px}
+  .tabbar > button[aria-current="page"]{color:var(--accent)}
+  .tabbar .tab-fab{width:56px;height:56px;min-height:0;justify-self:center;margin-top:-26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);box-shadow:0 8px 20px -6px rgba(58,29,32,.55);padding:0;justify-content:center}
+  .tabbar .tab-fab svg{width:26px;height:26px}
+  .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px calc(96px + env(safe-area-inset-bottom,0px))}
+  .grid{gap:12px}
+  .card{padding:16px;gap:10px}
+  .big{font-size:34px}
+  .greet{margin-bottom:8px}
   .greet h1{font-size:24px}
-  .brand-logo{width:38px;height:38px}
-  .monthnav h1{font-size:17px;min-width:8em}
+  .topbar{gap:8px;padding-bottom:8px;margin-bottom:12px;justify-content:center}
+  .topbar .btn,.topbar .spacer{display:none}
+  .topbar.plain{display:none}
+  .monthnav{width:100%;justify-content:space-between}
+  .monthnav h1,.topbar h1{font-size:21px;min-width:0;flex:1;text-align:center}
+  .icon-btn{width:38px;height:38px}
+  .statstrip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .statstrip > div{padding:12px 14px}
+  .statstrip .v{font-size:17px}
+  .legend{grid-template-columns:repeat(2,minmax(0,1fr))}
   .budget-row{grid-template-columns:minmax(0,1fr) auto}
-  .li .catc{display:none}
-  .li{flex-wrap:wrap}
-  .li .grow{flex-basis:40%}
   .budget-row .meterwrap{grid-column:1/-1;order:3}
+  .li{flex-wrap:wrap;gap:10px;padding:12px 2px}
+  .li .grow{flex-basis:40%}
+  .li .catc{display:none}
+  .btn{min-height:40px}
+  .btn.sm{min-height:34px}
+  .banner{font-size:12.5px;padding:9px 12px}
+  .filters{display:flex;flex-direction:column;gap:8px}
+  .filt-sel{display:flex;gap:8px;overflow-x:auto;min-width:0;max-width:100%;scrollbar-width:none;margin-inline:-2px;padding-inline:2px}
+  .filt-sel::-webkit-scrollbar{display:none}
+  .filt-sel select{flex:0 0 auto;max-width:72%;min-height:42px;border-radius:999px}
+  .filters input{min-height:44px;flex:none;width:100%;box-sizing:border-box}
+  .filters{min-width:0;max-width:100%}
+  input,select,textarea{font-size:16px!important}
+  /* janelas sobem de baixo */
+  .scrim{align-items:flex-end;padding:0}
+  .scrim .modal{max-width:100%;border-radius:22px 22px 0 0;border-bottom:0;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px));display:flex;flex-direction:column;animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
+  .scrim .modal form{display:flex;flex-direction:column;min-height:0;flex:1}
+  .scrim .modal .modal-b{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+  .scrim .modal .modal-h{position:relative;padding-top:20px}
+  .scrim .modal .modal-h::before{content:"";position:absolute;top:7px;left:50%;width:40px;height:4px;margin-left:-20px;border-radius:4px;background:var(--line)}
+  .scrim .modal .modal-f{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+  .scrim .modal .modal-f .btn{flex:1}
+  .scrim .modal .modal-f .spacer{display:none}
+  .seg{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .seg::-webkit-scrollbar{display:none}
+  .seg button{flex:0 0 auto}
+  .frow{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+  /* login no celular */
+  .auth2{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr}
+  .auth-hero{padding:calc(36px + env(safe-area-inset-top,0px)) 24px 56px;border-radius:0 0 30px 30px;justify-content:flex-start}
+  .auth-hero-in{gap:10px}
+  .auth-coin{width:84px;height:84px}
+  .auth-hero h1{font-size:32px}
+  .auth-tag{font-size:15px}
+  .auth-points{display:none}
+  .auth-panel{align-items:flex-start;padding-top:0;margin-top:-28px;position:relative;z-index:2}
+  .auth-form-wrap{background:var(--surface);border:1.5px solid var(--line);border-radius:22px;padding:22px 18px;box-shadow:var(--shadow)}
 }
+@media (max-width:820px) and (prefers-reduced-motion:reduce){.scrim .modal{animation:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -483,7 +576,7 @@ const daysIn = k => new Date(+k.slice(0,4), +k.slice(5,7), 0).getDate();
 const dateIn = (k,day) => k+"-"+pad(Math.max(1,Math.min(+day||1, daysIn(k))));
 const lastDay = k => dateIn(k, 31);
 const dBR = d => d.slice(8,10)+"/"+d.slice(5,7);
-const dLong = d => { const dt = new Date(+d.slice(0,4), +d.slice(5,7)-1, +d.slice(8,10)); return dt.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"}); };
+const dLong = d => { const dt = new Date(+d.slice(0,4), +d.slice(5,7)-1, +d.slice(8,10)); const t = dt.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"}); return t[0].toUpperCase()+t.slice(1); };
 const clone = o => JSON.parse(JSON.stringify(o));
 
 /* ============ instituições (monogramas nas cores das marcas) ============ */
@@ -548,6 +641,10 @@ const I = {
   gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   left:'<path d="m15 18-6-6 6-6"/>', right:'<path d="m9 18 6-6-6-6"/>', plus:'<path d="M12 5v14M5 12h14"/>', x:'<path d="M18 6 6 18M6 6l12 12"/>',
   edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/>', swap:'<path d="M7 7h13l-4-4M17 17H4l4 4"/>', check:'<path d="M20 6 9 17l-5-5"/>',
+  eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeoff:'<path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/>',
+  dots:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
   repeat:'<path d="m17 2 4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>'
 };
 const ico = (n,cls="") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
@@ -661,7 +758,7 @@ function cloudCacheRead(){ try { return JSON.parse(localStorage.getItem(cacheKey
 function cloudCacheWrite(){ if (!STORE.user) return; try { localStorage.setItem(cacheKey(), JSON.stringify({cfg:CFG, months:MONTHS, dirty:{cfg:STORE.dirty.cfg, months:[...STORE.dirty.months]}})); } catch(e){} }
 const SYNC_TXT = {ok:["ok","Sincronizado na nuvem"], saving:["warn","Salvando…"], offline:["warn","Sem internet · salvo no aparelho"], error:["bad","Não sincronizou · tentando de novo"]};
 function syncPill(){ const [c,t] = SYNC_TXT[STORE.sync] || SYNC_TXT.ok; return `<span class="dot ${c}"></span>${t}`; }
-function setSync(st){ STORE.sync = st; const el = document.getElementById("sync-pill"); if (el) el.innerHTML = syncPill(); }
+function setSync(st){ STORE.sync = st; ["sync-pill","sync-pill-m"].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = syncPill(); }); }
 let flushT = null, flushing = null, retryT = null;
 function scheduleFlush(){ clearTimeout(flushT); flushT = setTimeout(cloudFlush, 400); }
 async function cloudFlush(){
@@ -746,35 +843,45 @@ function authErr(e){
   if (/failed to fetch|network/i.test(m)) return "Sem conexão com a internet. Tente de novo quando estiver on-line.";
   return "Não deu certo: " + m;
 }
+const pwField = (id, name, label, ac, extra="") => `<div class="field"><label for="${id}">${label}</label><div class="pw"><input id="${id}" name="${name}" type="password" autocomplete="${ac}" required ${extra}><button type="button" class="pw-eye" data-act="pw-toggle" aria-label="Mostrar senha" aria-pressed="false">${ico("eye")}</button></div></div>`;
 function authScreen(){
-  const V = AUTH.view, tab = (k,l) => `<button type="button" data-act="auth-view" data-v="${k}" aria-pressed="${V===k}">${l}</button>`;
+  const V = AUTH.view;
   const msg = AUTH.err ? `<div class="banner bad" style="margin:0">${esc(AUTH.err)}</div>` : AUTH.msg ? `<div class="banner info" style="margin:0"><span>${esc(AUTH.msg)}</span></div>` : "";
   const em = esc(AUTH.email||"");
+  const T = {entrar:["Que bom te ver","Entre para ver suas finanças."], criar:["Criar sua conta","Leva menos de um minuto."], recuperar:["Esqueceu a senha?","Enviamos um link para você criar uma nova."], "nova-senha":["Nova senha","Escolha uma senha com pelo menos 6 caracteres."]}[V] || ["",""];
   let body = "";
-  if (V==="entrar") body = `<form class="stack" data-form="auth-login" style="gap:12px">
-      <div class="field"><label for="au-email">E-mail</label><input id="au-email" name="email" type="email" autocomplete="email" required value="${em}"></div>
-      <div class="field"><label for="au-pass">Senha</label><input id="au-pass" name="password" type="password" autocomplete="current-password" required></div>
-      <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>${AUTH.busy?"Entrando…":"Entrar"}</button>
-      <button class="btn ghost" type="button" data-act="auth-view" data-v="recuperar">Esqueci minha senha</button></form>`;
-  if (V==="criar") body = `<form class="stack" data-form="auth-signup" style="gap:12px">
+  if (V==="entrar") body = `<form class="stack" data-form="auth-login" style="gap:14px">
+      <div class="field"><label for="au-email">E-mail</label><input id="au-email" name="email" type="email" autocomplete="email" inputmode="email" required value="${em}"></div>
+      ${pwField("au-pass","password","Senha","current-password")}
+      <button class="link-btn" type="button" data-act="auth-view" data-v="recuperar">Esqueci minha senha</button>
+      <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>${AUTH.busy?"Entrando…":"Entrar"}</button></form>
+      <div class="auth-switch">Ainda não tem conta? <button type="button" data-act="auth-view" data-v="criar">Criar conta</button></div>`;
+  if (V==="criar") body = `<form class="stack" data-form="auth-signup" style="gap:14px">
       <div class="field"><label for="au-name">Como quer ser chamada(o)</label><input id="au-name" name="name" autocomplete="given-name" required></div>
-      <div class="field"><label for="au-email2">E-mail</label><input id="au-email2" name="email" type="email" autocomplete="email" required value="${em}"></div>
-      <div class="field"><label for="au-pass2">Senha</label><input id="au-pass2" name="password" type="password" autocomplete="new-password" minlength="6" required><span class="hint">Pelo menos 6 caracteres.</span></div>
-      <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>${AUTH.busy?"Criando…":"Criar conta"}</button></form>`;
-  if (V==="recuperar") body = `<form class="stack" data-form="auth-reset" style="gap:12px">
-      <p class="muted" style="margin:0">Enviaremos um link para você criar uma senha nova.</p>
-      <div class="field"><label for="au-email3">E-mail</label><input id="au-email3" name="email" type="email" autocomplete="email" required value="${em}"></div>
-      <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>Enviar link</button>
-      <button class="btn ghost" type="button" data-act="auth-view" data-v="entrar">Voltar para entrar</button></form>`;
-  if (V==="nova-senha") body = `<form class="stack" data-form="auth-newpass" style="gap:12px">
-      <div class="field"><label for="au-np1">Nova senha</label><input id="au-np1" name="p1" type="password" autocomplete="new-password" minlength="6" required></div>
-      <div class="field"><label for="au-np2">Repita a nova senha</label><input id="au-np2" name="p2" type="password" autocomplete="new-password" minlength="6" required></div>
+      <div class="field"><label for="au-email2">E-mail</label><input id="au-email2" name="email" type="email" autocomplete="email" inputmode="email" required value="${em}"></div>
+      ${pwField("au-pass2","password","Senha","new-password",'minlength="6"')}
+      <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>${AUTH.busy?"Criando…":"Criar conta"}</button></form>
+      <div class="auth-switch">Já tem conta? <button type="button" data-act="auth-view" data-v="entrar">Entrar</button></div>`;
+  if (V==="recuperar") body = `<form class="stack" data-form="auth-reset" style="gap:14px">
+      <div class="field"><label for="au-email3">E-mail</label><input id="au-email3" name="email" type="email" autocomplete="email" inputmode="email" required value="${em}"></div>
+      <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>Enviar link</button></form>
+      <div class="auth-switch"><button type="button" data-act="auth-view" data-v="entrar">Voltar para entrar</button></div>`;
+  if (V==="nova-senha") body = `<form class="stack" data-form="auth-newpass" style="gap:14px">
+      ${pwField("au-np1","p1","Nova senha","new-password",'minlength="6"')}
+      ${pwField("au-np2","p2","Repita a nova senha","new-password",'minlength="6"')}
       <button class="btn primary" type="submit" ${AUTH.busy?"disabled":""}>Salvar nova senha</button></form>`;
-  return `<div class="auth-wrap"><section class="card auth-card">
-    <div class="auth-head"><img src="${APP_LOGO}" alt="" class="auth-logo"><div><h1>Minhas Finanças</h1><span class="muted">Seus dados salvos na sua conta, em qualquer aparelho</span></div></div>
-    ${V==="entrar"||V==="criar"?`<div class="seg" role="group" aria-label="Acesso">${tab("entrar","Entrar")}${tab("criar","Criar conta")}</div>`:""}
-    ${msg}${body}
-  </section></div>`;
+  return `<div class="auth2">
+    <section class="auth-hero"><div class="auth-hero-in">
+      <img src="${APP_LOGO}" alt="" class="auth-coin">
+      <h1>Minhas Finanças</h1>
+      <p class="auth-tag">Cada real no seu lugar, um mês de cada vez.</p>
+      <ul class="auth-points"><li>Contas, cartões e faturas num só lugar</li><li>Reserva e metas acompanhadas mês a mês</li><li>Sincroniza no celular e no computador</li></ul>
+    </div></section>
+    <section class="auth-panel"><div class="auth-form-wrap">
+      <div><h2>${T[0]}</h2><p class="lead">${T[1]}</p></div>
+      ${msg}${body}
+    </div></section>
+  </div>`;
 }
 async function handleAuthForm(kind, v){
   const sb = STORE.sb; if (!sb) return;
@@ -995,7 +1102,13 @@ function shell(body){
   const nav = Object.keys(VIEWS).map(v => `<button data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}><span class="ni">${ico(VIEW_ICONS[v])}</span><span>${VIEWS[v]}</span></button>`).join("");
   const storeTxt = STORE.mode==="cloud" ? `<span class="store-pill" id="sync-pill">${syncPill()}</span><button class="btn sm ghost" data-act="logout" style="justify-content:flex-start;padding:0">Sair da conta</button>` : STORE.mode==="db" ? `<span class="store-pill"><span class="dot ok"></span>Salvo na sua conta</span>` : `<span class="store-pill"><span class="dot warn"></span>Salvo só neste navegador</span>`;
   const showTop = CFG && !["contas","metas","ajustes"].includes(UI.view);
-  return `<div class="shell">
+  const tab = (v,l,i) => `<button data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}>${ico(i)}<span>${l}</span></button>`;
+  const inMore = !["geral","lancamentos","cartoes"].includes(UI.view);
+  const mobile = CFG ? `<header class="mtop"><img src="${APP_LOGO}" alt="" class="mtop-logo"><b>${UI.view==="geral"?"Minhas Finanças":VIEWS[UI.view]}</b>${STORE.mode==="cloud"?`<span class="mtop-sync" id="sync-pill-m">${syncPill()}</span>`:""}</header>
+    <nav class="tabbar" aria-label="Navegação">${tab("geral","Início","home")}${tab("lancamentos","Lançamentos","list")}
+      <button class="tab-fab" data-act="new-tx" aria-label="Novo lançamento">${ico("plus")}</button>
+      ${tab("cartoes","Cartões","card")}<button data-act="more" ${inMore?'aria-current="page"':""}>${ico("dots")}<span>Mais</span></button></nav>` : "";
+  return `${mobile}<div class="shell">
   <aside class="side">
     <div class="brand"><div class="brand-logo"><img src="${APP_LOGO}" alt="Minhas Finanças" data-applogo></div></div>
     <nav class="nav" aria-label="Seções"><div class="nav-label">Menu</div>${CFG?nav:""}</nav>
@@ -1008,7 +1121,7 @@ function shell(body){
     ${STORE.note?`<div class="banner">${esc(STORE.note)}</div>`:""}
     ${STORE.mode==="local" && CFG ? `<div class="banner info"><span>Os dados ficam salvos apenas neste navegador. Use <b>Ajustes → Backup</b> para guardar uma cópia.</span></div>`:""}
     ${CFG && UI.view==="geral" ? greeting() : ""}
-    ${showTop?topbar():CFG?`<div class="topbar"><h1 style="font-size:20px">${VIEWS[UI.view]}</h1><div class="spacer"></div><button class="btn primary" data-act="new-tx">${ico("plus")}Lançamento</button></div>`:""}
+    ${showTop?topbar():CFG?`<div class="topbar plain"><h1 style="font-size:20px">${VIEWS[UI.view]}</h1><div class="spacer"></div><button class="btn primary" data-act="new-tx">${ico("plus")}Lançamento</button></div>`:""}
     ${body}
   </main></div>`;
 }
@@ -1018,6 +1131,12 @@ function greeting(){
   let hoje = new Date().toLocaleDateString("pt-BR",{weekday:"long", day:"numeric", month:"long"}); hoje = hoje[0].toUpperCase()+hoje.slice(1);
   if (!nome) return `<div class="greet"><h1>${oi}!</h1><form data-form="name"><label for="g-name" class="muted" style="text-transform:none">Como posso te chamar?</label><input id="g-name" name="name" autocomplete="given-name" placeholder="Seu nome"><button class="btn sm primary" type="submit">Salvar</button></form></div>`;
   return `<div class="greet"><h1>${oi}, ${esc(nome)}</h1><span class="muted">${hoje}</span></div>`;
+}
+function moreSheet(){
+  const items = ["orcamento","contas","fixas","metas","patrimonio","ajustes"].map(v => `<button class="more-item" data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}>${ico(VIEW_ICONS[v])}<span>${VIEWS[v]}</span></button>`).join("");
+  openModal({title:"Mais", body:`<div class="more-grid">${items}</div>
+    <div class="flabel">Tema</div><div class="skin-row">${Object.entries(SKINS).map(([k,v])=>`<button data-act="skin" data-m="${k}" aria-pressed="${currentSkin()===k}">${v.label}</button>`).join("")}</div>
+    ${STORE.mode==="cloud"?`<button class="btn" data-act="logout">${ico("logout")}Sair da conta</button>`:""}`});
 }
 function topbar(){
   const cur = mk(todayStr());
@@ -1175,9 +1294,9 @@ function vLanc(){
    <section class="card s12">
     <div class="filters">
       <input id="f-q" type="search" placeholder="Buscar descrição" value="${esc(F.q)}" data-filt="q" aria-label="Buscar">
-      <select id="f-type" data-filt="type" aria-label="Tipo">${opt("","Todos os tipos",F.type)}${opt("despesa","Despesas",F.type)}${opt("receita","Receitas",F.type)}${opt("credito","Compras no cartão",F.type)}${opt("parcela","Parcelas anteriores",F.type)}${opt("transfer","Transferências",F.type)}${opt("fatura","Pagamentos de fatura",F.type)}${opt("ajuste","Ajustes de saldo",F.type)}</select>
+      <div class="filt-sel"><select id="f-type" data-filt="type" aria-label="Tipo">${opt("","Todos os tipos",F.type)}${opt("despesa","Despesas",F.type)}${opt("receita","Receitas",F.type)}${opt("credito","Compras no cartão",F.type)}${opt("parcela","Parcelas anteriores",F.type)}${opt("transfer","Transferências",F.type)}${opt("fatura","Pagamentos de fatura",F.type)}${opt("ajuste","Ajustes de saldo",F.type)}</select>
       <select id="f-cat" data-filt="cat" aria-label="Categoria">${opt("","Todas as categorias",F.cat)}${CFG.categories.map(c=>opt(c.id,c.name,F.cat)).join("")}</select>
-      <select id="f-src" data-filt="src" aria-label="Conta ou cartão">${opt("","Todas as contas e cartões",F.src)}${CFG.accounts.map(a=>opt(a.id,a.name,F.src)).join("")}${CFG.cards.map(c=>opt(c.id,"Cartão "+c.name,F.src)).join("")}</select>
+      <select id="f-src" data-filt="src" aria-label="Conta ou cartão">${opt("","Todas as contas e cartões",F.src)}${CFG.accounts.map(a=>opt(a.id,a.name,F.src)).join("")}${CFG.cards.map(c=>opt(c.id,"Cartão "+c.name,F.src)).join("")}</select></div>
     </div>
     ${rows?`<div class="list">${rows}</div>`:`<div class="empty">Nenhum lançamento em ${mLabel(key)}${F.q||F.type||F.cat||F.src?" com esses filtros":""}.<button class="btn primary sm" data-act="new-tx">Adicionar lançamento</button></div>`}
     ${olds.length?`<div class="daygroup">Parcelas de compras de meses anteriores</div><div class="list">${olds.map(txRow).join("")}</div>`:""}
@@ -1502,7 +1621,7 @@ function openModal({title, body, submitLabel="Salvar", onSubmit, del, wide, extr
     <form id="mform" novalidate>
       <div class="modal-h"><h3>${esc(title)}</h3><div class="spacer"></div><button type="button" class="icon-btn" data-act="close" aria-label="Fechar">${ico("x")}</button></div>
       <div class="modal-b">${body}<div id="m-err" class="banner bad" hidden></div></div>
-      <div class="modal-f">${del?`<button type="button" class="btn danger" data-act="m-del">Excluir</button>`:""}${extraFoot}<div class="spacer"></div><button type="button" class="btn" data-act="close">Cancelar</button>${onSubmit?`<button type="submit" class="btn primary">${esc(submitLabel)}</button>`:""}</div>
+      <div class="modal-f">${del?`<button type="button" class="btn danger" data-act="m-del">Excluir</button>`:""}${extraFoot}<div class="spacer"></div><button type="button" class="btn" data-act="close">${onSubmit?"Cancelar":"Fechar"}</button>${onSubmit?`<button type="submit" class="btn primary">${esc(submitLabel)}</button>`:""}</div>
     </form></div></div>`;
   const f = document.querySelector("#mform input:not([type=hidden]),#mform select");
   if (f && window.matchMedia("(min-width:821px)").matches) f.focus();
@@ -1861,12 +1980,14 @@ document.addEventListener("click", e => {
   const a = el.dataset.act, id = el.dataset.id;
   if (a==="scrim" && e.target!==el) return;
   switch(a){
-    case "nav": UI.view = el.dataset.v; try { history.replaceState(null,"","#"+UI.view); } catch(_){ location.hash = UI.view; } render(); window.scrollTo(0,0); break;
+    case "nav": closeModal(); UI.view = el.dataset.v; try { history.replaceState(null,"","#"+UI.view); } catch(_){ location.hash = UI.view; } render(); window.scrollTo(0,0); break;
     case "month": UI.month = addM(UI.month, +el.dataset.d); render(); break;
     case "month-today": UI.month = mk(todayStr()); render(); break;
-    case "skin": setSkin(el.dataset.m); break;
+    case "skin": setSkin(el.dataset.m); if (document.querySelector(".more-grid")) moreSheet(); break;
+    case "more": moreSheet(); break;
+    case "pw-toggle": { const inp = el.parentElement.querySelector("input"); const show = inp.type==="password"; inp.type = show ? "text" : "password"; el.setAttribute("aria-pressed", show); el.setAttribute("aria-label", show ? "Esconder senha" : "Mostrar senha"); el.innerHTML = ico(show ? "eyeoff" : "eye"); inp.focus(); break; }
     case "auth-view": AUTH.view = el.dataset.v; AUTH.err = ""; AUTH.msg = ""; render(); break;
-    case "logout": cloudSignOut(); break;
+    case "logout": closeModal(); cloudSignOut(); break;
     case "import-local": { const l = lsRead(); if (l?.cfg){ CFG = normalizeCfg(l.cfg); MONTHS = l.months || {}; if (!CFG.profile?.name && STORE.user?.user_metadata?.name) CFG.profile = {name:STORE.user.user_metadata.name}; saveCfg(); Object.keys(MONTHS).forEach(saveMonth); toast("Dados levados para a sua conta"); render(); } break; }
     case "scrim": case "close": closeModal(); break;
     case "new-tx": txModal(null, {type:el.dataset.type, cardId:el.dataset.card}); break;
