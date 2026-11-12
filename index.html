@@ -459,6 +459,29 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 .wipe-opt:has(input:checked){border-color:var(--bad);background:var(--bad-soft)}
 .wipe-opt input{margin-top:3px}
 .wipe-opt b{display:block}
+.quick{display:flex;flex-direction:column;gap:8px}
+.quick .hint{font-size:11.5px;color:var(--muted);margin-top:-2px}
+.quick-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.quick-chip{display:flex;align-items:center;gap:8px;padding:10px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer;text-align:left;min-width:0;color:var(--fg)}
+.quick-chip:hover{border-color:var(--accent)}
+.quick-chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.quick-chip .swatch{width:12px;height:12px;border-radius:50%}
+.q-txt{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.q-txt b{font-size:13px}
+.q-txt .money{font-size:12.5px;color:var(--muted)}
+.alert-card{border-color:color-mix(in srgb,var(--warn) 35%,var(--line))}
+.retro-card{background:var(--accent-soft);border-color:transparent}
+.retro-card h2{font-size:16px}
+.retro-hero{display:flex;flex-direction:column;gap:2px;padding:6px 0}
+.retro-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.retro-grid > div,.retro-facts > div{display:flex;flex-direction:column;gap:4px;padding:12px;border:1.5px solid var(--line);border-radius:14px;align-items:flex-start;min-width:0}
+.retro-cat{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line)}
+.retro-cat .grow{display:flex;flex-direction:column;flex:1;min-width:0}
+.retro-cat .swatch{width:12px;height:12px;border-radius:50%}
+.retro-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.rem-dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--muted)}
+.rem-fatura{background:var(--c2)} .rem-fixa{background:var(--c3)} .rem-salario{background:var(--c4)}
+@media (max-width:820px){.retro-grid,.retro-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-chip{padding:10px 8px;flex-direction:column;align-items:flex-start;gap:6px}}
 .imp-list{display:flex;flex-direction:column;border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
 .imp-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:12px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
 .imp-row:last-child{border-bottom:0}
@@ -703,7 +726,7 @@ function defaultConfig(income=0, day=5){
   };
 }
 function normalizeCfg(c){
-  c.income ||= {amount:0,day:5,accountId:""}; c.profile ||= {name:""}; c.accounts ||= []; c.cards ||= []; c.goals ||= []; c.bills ||= [];
+  c.income ||= {amount:0,day:5,accountId:""}; c.profile ||= {name:""}; c.reminders ||= {on:false, faturas:true, fixas:true, salario:true}; c.accounts ||= []; c.cards ||= []; c.goals ||= []; c.bills ||= [];
   c.categories ||= []; c.budgetOverrides ||= {}; c.savingsTarget ??= 0;
   c.categories.forEach(k=>{k.subs ||= []; k.kind ||= "despesa";});
   [...c.accounts, ...c.cards].forEach(e => { if (PRESET_ISPB[e.bank]){ e.bankName = BANKS[e.bank].name; e.ispb = PRESET_ISPB[e.bank]; e.bank = "inst"; } });
@@ -1164,6 +1187,7 @@ function render(){
   try { body = ({geral:vGeral, lancamentos:vLanc, contas:vContas, cartoes:vCartoes, fixas:vFixas, orcamento:vOrc, metas:vMetas, patrimonio:vPatr, ajustes:vAjustes}[UI.view] || vGeral)(); }
   catch(e){ console.error(e); body = `<div class="banner bad">Algo deu errado ao montar esta tela: ${esc(e.message)}</div>`; }
   app.innerHTML = shell(body);
+  scheduleReminderSync();
 }
 function shell(body){
   const nav = Object.keys(VIEWS).map(v => `<button data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}><span class="ni">${ico(VIEW_ICONS[v])}</span><span>${VIEWS[v]}</span></button>`).join("");
@@ -1216,6 +1240,154 @@ function topbar(){
     <button class="btn" data-act="transfer">${ico("swap")}Transferir</button>
     <button class="btn primary" data-act="new-tx">${ico("plus")}Lançamento</button>
   </div>`;
+}
+
+/* ============ Alerta de orçamento ============ */
+function budgetAlerts(key){
+  const sp = spendItems(key);
+  return CFG.categories.filter(c=>c.kind==="despesa").map(c => {
+    const plan = budgetOf(c,key); if (!(plan>0)) return null;
+    const real = sum(sp.filter(x=>x.catId===c.id), x=>x.amount), r = real/plan;
+    return r >= .8 ? {c, plan, real, r} : null;
+  }).filter(Boolean).sort((a,b)=>b.r-a.r);
+}
+function alertText(a, key){
+  const quando = key===mk(todayStr()) ? "deste mês" : "de "+MESES[+key.slice(5)-1];
+  if (a.real > a.plan + 0.004) return `<b>${esc(a.c.name)}</b>: passou ${fmt(a.real-a.plan)} do limite ${quando}`;
+  if (a.plan - a.real < 0.005) return `<b>${esc(a.c.name)}</b>: chegou no limite ${quando}`;
+  return `<b>${esc(a.c.name)}</b>: faltam ${fmt(a.plan-a.real)} para o limite ${quando}`;
+}
+
+/* ============ Retrospectiva do mês ============ */
+function retroData(key){
+  const prev = addM(key,-1);
+  const sum3 = k => ({inc:incomeIn(k), spent:spentIn(k), saved:savedIn(k)});
+  const A = sum3(key), B = sum3(prev);
+  const sp = spendItems(key);
+  const byCat = {}; sp.forEach(x => { byCat[x.catId||""] = (byCat[x.catId||""]||0) + x.amount; });
+  const cats = Object.entries(byCat).map(([id,v]) => ({c:catById(id), v:r2(v)})).sort((a,b)=>b.v-a.v);
+  const prevCat = {}; spendItems(prev).forEach(x => { prevCat[x.catId||""] = (prevCat[x.catId||""]||0) + x.amount; });
+  const big = sp.slice().sort((a,b)=>b.amount-a.amount)[0];
+  const days = new Set(txIn(key).filter(t=>t.type==="despesa"||t.type==="credito").map(t=>t.date)).size;
+  const hasPrev = B.inc>0 || B.spent>0;
+  return {key, prev, A, B, cats, prevCat, big, days, hasPrev, n:txIn(key).length};
+}
+function retroModal(key){
+  const R = retroData(key), mes = MESES[+key.slice(5)-1], mesPrev = MESES[+R.prev.slice(5)-1];
+  const delta = (a,b,goodUp) => { if (!R.hasPrev) return ""; const d = r2(a-b); if (Math.abs(d)<0.01) return `<span class="chip">igual a ${mesPrev}</span>`; const up = d>0, good = goodUp ? up : !up; return `<span class="chip ${good?"good":"bad"}">${up?"▲":"▼"} ${fmt(Math.abs(d))} vs ${mesPrev}</span>`; };
+  const result = r2(R.A.inc - R.A.spent);
+  const top = R.cats.slice(0,3).map(x => { const pct = R.A.spent>0 ? Math.round(x.v/R.A.spent*100) : 0; const pv = R.prevCat[x.c?.id||""]||0;
+    return `<div class="retro-cat"><span class="swatch" style="background:${catColor(x.c)}"></span><span class="grow ellip"><b>${esc(x.c?.name||"Sem categoria")}</b><span class="tiny muted">${pct}% dos gastos${R.hasPrev?` · ${mesPrev}: ${fmt(pv)}`:""}</span></span><b class="money">${fmt(x.v)}</b></div>`; }).join("");
+  const metaTxt = CFG.savingsTarget>0 ? (R.A.saved >= CFG.savingsTarget-0.004 ? `Meta de ${fmt(CFG.savingsTarget)} cumprida.` : `Faltaram ${fmt(CFG.savingsTarget-R.A.saved)} para a meta de ${fmt(CFG.savingsTarget)}.`) : "";
+  openModal({title:`Retrospectiva de ${mes}`, wide:true, body:`
+    <div class="retro-hero"><span class="eyebrow">${mes} de ${key.slice(0,4)}</span><div class="big money ${result<0?"neg":""}">${result>=0?"+":""}${fmt(result)}</div><span class="muted">${result>=0?"sobrou entre o que entrou e o que saiu":"saiu mais do que entrou"}</span></div>
+    <div class="retro-grid">
+      <div><span class="eyebrow">Entrou</span><b class="mid money">${fmt(R.A.inc)}</b>${delta(R.A.inc,R.B.inc,true)}</div>
+      <div><span class="eyebrow">Gastou</span><b class="mid money">${fmt(R.A.spent)}</b>${delta(R.A.spent,R.B.spent,false)}</div>
+      <div><span class="eyebrow">Guardou</span><b class="mid money">${fmt(R.A.saved)}</b>${delta(R.A.saved,R.B.saved,true)}</div>
+    </div>
+    ${metaTxt?`<div class="banner ${R.A.saved>=CFG.savingsTarget-0.004?"info":""}" style="margin:0"><span>${metaTxt}</span></div>`:""}
+    <div class="flabel">Onde mais gastou</div>
+    ${top || `<div class="tiny muted">Nenhum gasto neste mês.</div>`}
+    <div class="retro-facts">
+      ${R.big?`<div><span class="eyebrow">Maior gasto</span><b>${esc(R.big.t.desc||"Gasto")}</b><span class="money">${fmt(R.big.amount)}</span></div>`:""}
+      <div><span class="eyebrow">Dias com gasto</span><b>${R.days} de ${daysIn(key)}</b><span class="muted tiny">${daysIn(key)-R.days} dias sem gastar</span></div>
+      <div><span class="eyebrow">Lançamentos</span><b>${R.n}</b><span class="muted tiny">no mês</span></div>
+    </div>`});
+  if (CFG.retroSeen !== key && key < mk(todayStr())){ CFG.retroSeen = key; saveCfg(); }
+}
+
+/* ============ Lembretes ============ */
+const addDays = (d,n) => { const dt = new Date(+d.slice(0,4), +d.slice(5,7)-1, +d.slice(8,10)+n); return dt.getFullYear()+"-"+pad(dt.getMonth()+1)+"-"+pad(dt.getDate()); };
+function reminderList(from=todayStr(), span=45){
+  if (!CFG) return [];
+  const R = CFG.reminders || {}, out = [], until = addDays(from, span);
+  const keys = [addM(mk(from),-1), mk(from), addM(mk(from),1), addM(mk(from),2)];
+  for (const k of keys){
+    if (R.faturas!==false) CFG.cards.forEach(c => { const iv = invoiceOf(c,k); if (iv.total>0 && iv.remaining>0.004)
+      out.push({id:`fat-${c.id}-${k}`, date:addDays(iv.dueDate,-1), due:iv.dueDate, title:`Fatura ${c.name} vence amanhã`, body:`${fmt(iv.remaining)} · vencimento ${dBR(iv.dueDate)}`, url:"./#cartoes", kind:"fatura"}); });
+    if (R.fixas!==false) CFG.bills.filter(b=>b.active!==false && !billPaid(b,k)).forEach(b => { const due = dateIn(k,b.day); const a = accById(b.accountId);
+      out.push({id:`fixa-${b.id}-${k}`, date:addDays(due,-1), due, title:`${b.name} vence amanhã`, body:`${fmt(b.amount)}${a?` · pagar com ${a.name}`:""}`, url:"./#fixas", kind:"fixa"}); });
+    if (R.salario!==false && +CFG.income.amount>0 && !salaryTx(k).length){ const d = dateIn(k, CFG.income.day); const falta = Math.max(0, r2((+CFG.savingsTarget||0) - savedIn(k)));
+      out.push({id:`sal-${k}`, date:d, due:d, title:`Dia de salário: ${fmt(CFG.income.amount)}`, body: falta>0 ? `Hora de separar os ${fmt(falta)} da reserva.` : "Registre o salário no app para atualizar o mês.", url:"./#geral", kind:"salario"}); }
+  }
+  return out.filter(x => x.date>=from && x.date<=until).sort((a,b)=>a.date<b.date?-1:1);
+}
+const notifOK = () => "Notification" in window && "serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !window.claude;
+const remCacheUrl = n => new URL("./"+n, location.href).href;
+async function swReady(){ return Promise.race([navigator.serviceWorker.ready, new Promise(r=>setTimeout(()=>r(null),3000))]); }
+let remT = null;
+function scheduleReminderSync(){ clearTimeout(remT); remT = setTimeout(syncReminders, 1500); }
+async function syncReminders(){
+  if (!CFG?.reminders?.on || !notifOK()) return;
+  const list = reminderList(addDays(todayStr(),-1), 45);
+  try {
+    const c = await caches.open("mf-lembretes");
+    await c.put(remCacheUrl("__lembretes.json"), new Response(JSON.stringify({list, at:Date.now()}), {headers:{"content-type":"application/json"}}));
+    if (Notification.permission === "granted"){ const reg = await swReady(); reg?.active?.postMessage("mf-lembretes"); }
+  } catch(e){ console.error(e); }
+}
+async function enableReminders(){
+  if (!notifOK()){ toast("Este navegador não mostra notificações aqui."); return; }
+  let perm = Notification.permission;
+  if (perm !== "granted") perm = await Notification.requestPermission();
+  if (perm !== "granted"){ toast("Notificações bloqueadas. Libere nas configurações do navegador."); render(); return; }
+  CFG.reminders = {...CFG.reminders, on:true}; saveCfg();
+  try { const reg = await swReady(); if (reg && "periodicSync" in reg) await reg.periodicSync.register("mf-lembretes", {minInterval: 12*60*60*1000}); } catch(e){}
+  await syncReminders(); toast("Lembretes ativados"); render();
+}
+async function testReminder(){
+  if (!notifOK() || Notification.permission!=="granted"){ toast("Ative os lembretes primeiro."); return; }
+  const falta = Math.max(0, r2((+CFG.savingsTarget||0) - savedIn(mk(todayStr()))));
+  const reg = await swReady();
+  const opt = {body: falta>0 ? `Hora de separar os ${fmt(falta)} da reserva.` : "Tudo certo com a sua reserva este mês.", icon:"icons/icon-192.png", badge:"icons/favicon-32.png", tag:"mf-teste", data:{url:"./#geral"}};
+  if (reg) await reg.showNotification("Teste: Minhas Finanças", opt); else new Notification("Teste: Minhas Finanças", opt);
+}
+function remindersSettings(){
+  const R = CFG.reminders || {}, ok = notifOK(), perm = ok ? Notification.permission : "unsupported";
+  const on = R.on && perm==="granted";
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent), standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  let status;
+  if (!ok) status = window.claude ? "Os lembretes funcionam no app em projetinho-tawny.vercel.app (instalado no celular ou no computador)." : "Este navegador não mostra notificações.";
+  else if (ios && !standalone) status = "No iPhone, primeiro instale o app: Compartilhar → Adicionar à Tela de Início. Depois abra pelo ícone e ative aqui.";
+  else if (perm==="denied") status = "As notificações estão bloqueadas para este site. Libere nas configurações do navegador ou do celular.";
+  else status = on ? "Ativados neste aparelho." : "Desativados.";
+  const nxt = reminderList(todayStr(), 30).slice(0,4);
+  const ck = (k,l) => `<label class="check"><input type="checkbox" data-rem="${k}" ${R[k]!==false?"checked":""}>${l}</label>`;
+  return `<section class="card s6"><div class="card-h"><div><h2>Lembretes</h2><div class="sub">${esc(status)}</div></div></div>
+    <div class="stack">${ck("faturas","Fatura do cartão: um dia antes do vencimento")}${ck("fixas","Contas fixas: um dia antes do vencimento")}${ck("salario","Dia do salário: quanto separar para a reserva")}</div>
+    ${ok && !(ios && !standalone) && perm!=="denied" ? `<div class="row" style="flex-wrap:wrap">${on?`<button class="btn" data-act="rem-off">Desativar</button><button class="btn sm ghost" data-act="rem-test">Enviar um teste</button>`:`<button class="btn primary" data-act="rem-on">Ativar lembretes</button>`}</div>` : ""}
+    ${nxt.length?`<div class="flabel">Próximos avisos</div><div class="list">${nxt.map(x=>`<div class="li"><span class="rem-dot rem-${x.kind}"></span><div class="grow"><div style="font-weight:600" class="ellip">${esc(x.title.replace(" vence amanhã",""))}</div><div class="tiny muted">${esc(x.body)}</div></div><span class="tiny muted" style="white-space:nowrap">${dBR(x.date)}</span></div>`).join("")}</div>`:""}
+  </section>`;
+}
+function remindersCard(){
+  const td = todayStr(), list = reminderList(td, 2).filter(x => x.date===td);
+  if (!list.length) return "";
+  return `<section class="card s12 rem-card"><div class="card-h"><div><h2>Lembretes de hoje</h2><div class="sub">${list.length} ${list.length===1?"aviso":"avisos"}</div></div></div>
+    <div class="list">${list.map(x=>`<div class="li"><span class="rem-dot rem-${x.kind}"></span><div class="grow"><div style="font-weight:600">${esc(x.title)}</div><div class="tiny muted">${esc(x.body)}</div></div>${x.kind==="salario"?`<button class="btn sm primary" data-act="salary">Registrar salário</button>`:x.kind==="fatura"?`<button class="btn sm" data-act="nav" data-v="cartoes">Ver fatura</button>`:`<button class="btn sm" data-act="nav" data-v="fixas">Ver conta</button>`}</div>`).join("")}</div></section>`;
+}
+
+/* ============ Lançamento rápido ============ */
+let QUICK = [];
+function quickPicks(){
+  const since = addM(mk(todayStr()), -3);
+  const list = allTx().filter(t => (t.type==="despesa"||t.type==="credito") && t.catId && !t.billId && mk(t.date)>=since && catById(t.catId));
+  const by = {};
+  list.forEach(t => { const g = by[t.catId] ||= {n:0, last:null}; g.n++; if (!g.last || t.date>g.last.date || (t.date===g.last.date && (t.createdAt||0)>(g.last.createdAt||0))) g.last = t; });
+  return Object.entries(by).map(([id,g]) => ({cat:catById(id), n:g.n, t:g.last}))
+    .sort((a,b) => b.n-a.n || (a.t.date<b.t.date?1:-1)).slice(0,3);
+}
+function applyQuick(i){
+  const q = QUICK[i], f = document.getElementById("mform"); if (!q || !f) return;
+  const t = q.t, credit = t.type==="credito" && cardById(t.cardId);
+  setTxType(credit ? "credito" : "despesa");
+  f.amount.value = fmtIn(t.amount); f.desc.value = t.desc || q.cat.name; f.date.value = todayStr();
+  if (credit){ f.cardId.value = t.cardId; if (f.installments) f.installments.value = "1"; if (f.hasRate) f.hasRate.checked = false; }
+  else if (t.accountId && f.accountId) f.accountId.value = t.accountId;
+  const cs = f.querySelector('select[name="cat_despesa"]'); if (cs) cs.value = t.catId+"|"+(t.subId||"");
+  f.querySelectorAll(".quick-chip").forEach((b,j) => b.setAttribute("aria-pressed", j===i));
+  refreshTxModal();
+  const a = f.amount; a.focus({preventScroll:true}); try { a.setSelectionRange(0, a.value.length); } catch(_){}
 }
 
 /* ============ Visão geral ============ */
@@ -1307,7 +1479,13 @@ function vGeral(){
   const hist = wealthHistory(6);
   const patCard = `<section class="card s7"><div class="card-h"><div><h2>Evolução do patrimônio</h2><div class="sub">Patrimônio líquido no fim de cada mês</div></div><div class="actions"><button class="btn sm ghost" data-act="nav" data-v="patrimonio">Detalhes</button></div></div>${lineChart(hist.map(h=>({label:mShort(h.key),value:h.liquido})),190)}</section>`;
 
-  return `<div class="grid">${hero}${salCard}${strip}${accCard}${cardCard}${budCard}${dueCard}${goalCard}${patCard}</div>`;
+  const alerts = budgetAlerts(key);
+  const alertCard = alerts.length ? `<section class="card s12 alert-card"><div class="card-h"><div><h2>Atenção ao orçamento</h2><div class="sub">Categorias com 80% ou mais do limite</div></div><div class="actions"><button class="btn sm ghost" data-act="nav" data-v="orcamento">Orçamento</button></div></div>
+    <div class="stack" style="gap:12px">${alerts.map(a=>`<div class="stack" style="gap:6px"><div class="row" style="font-size:14px"><span class="swatch" style="background:${catColor(a.c)}"></span><span class="grow">${alertText(a,key)}</span><span class="chip ${a.r>1?"bad":"warn"}">${Math.round(a.r*100)}%</span></div><div class="meter cat ${a.r>1?"over":""}" style="--cc:${catColor(a.c)}"><span style="width:${Math.min(100,a.r*100)}%"></span></div></div>`).join("")}</div></section>` : "";
+  const prevK = addM(mk(todayStr()),-1);
+  const retroCard = (+todayStr().slice(8,10) <= 10 && CFG.retroSeen !== prevK && (txIn(prevK).length || spentIn(prevK)>0)) ? `<section class="card s12 retro-card"><div class="row" style="flex-wrap:wrap"><div class="grow" style="min-width:200px"><h2>Sua retrospectiva de ${MESES[+prevK.slice(5)-1]} está pronta</h2><div class="tiny muted">Quanto entrou, quanto guardou, onde mais gastou e a comparação com o mês anterior.</div></div><button class="btn primary" data-act="retro" data-k="${prevK}">Ver retrospectiva</button><button class="btn ghost sm" data-act="retro-skip" data-k="${prevK}">Agora não</button></div></section>` : "";
+  const rem = key===mk(todayStr()) ? remindersCard() : "";
+  return `<div class="grid">${retroCard}${rem}${hero}${salCard}${alertCard}${strip}${accCard}${cardCard}${budCard}${dueCard}${goalCard}${patCard}</div>`;
 }
 function wealthHistory(n){
   const end = UI.month > mk(todayStr()) ? mk(todayStr()) : UI.month, out=[];
@@ -1583,7 +1761,7 @@ function vOrc(){
       <div><span class="eyebrow">Guardado no mês</span><span class="v money ${P.saved>=P.meta?"pos":""}">${fmt(P.saved)}</span></div>
       <div><span class="eyebrow">Renda × plano</span><span class="v money ${P.renda-planT-P.meta<0?"neg":""}">${fmt(P.renda-planT-P.meta)}</span><span class="tiny muted">sobra se cumprir o plano</span></div>
     </section>
-    <section class="card s8"><div class="card-h"><div><h2>Categorias</h2><div class="sub">Compras no cartão contam no mês de cada parcela; pagar a fatura não conta de novo.</div></div><div class="actions"><button class="btn sm" data-act="new-cat">${ico("plus")}Categoria</button></div></div>
+    <section class="card s8"><div class="card-h"><div><h2>Categorias</h2><div class="sub">Compras no cartão contam no mês de cada parcela; pagar a fatura não conta de novo.</div></div><div class="actions"><button class="btn sm" data-act="retro" data-k="${key}">Retrospectiva</button><button class="btn sm" data-act="new-cat">${ico("plus")}Categoria</button></div></div>
       <div>${rows}</div></section>
     <section class="card s4"><div class="card-h"><div><h2>Últimos 6 meses</h2><div class="sub">Gasto realizado; em vermelho quando passou do planejado</div></div></div>
       <div class="bars" style="height:170px">${months.map(m=>`<div class="b ${m.k===key?"cur":""}"><span class="v money">${m.real>0?fmt0(m.real):""}</span><div class="col" style="height:${Math.max(2,m.real/maxV*100)}%;${m.real>m.plan&&m.plan>0?"background:var(--bad-soft);border-color:var(--bad)":""}" title="Planejado ${fmt(m.plan)}"></div><span class="t">${mShort(m.k)}</span></div>`).join("")}</div>
@@ -1660,6 +1838,7 @@ function vAjustes(){
         <div><button class="btn primary" type="submit">Salvar</button></div>
       </form>
     </section>
+    ${remindersSettings()}
     <section class="card s6"><div class="card-h"><div><h2>Aparência</h2><div class="sub">Escolha o tema do app</div></div></div>
       <div class="skin-pick">${Object.entries(SKINS).map(([k,v])=>`<button class="skin-opt" data-act="skin" data-m="${k}" aria-pressed="${currentSkin()===k}"><span class="skin-sw">${v.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</span>${v.label}</button>`).join("")}</div>
     </section>
@@ -1725,8 +1904,11 @@ function txModal(t, preset={}){
   const show = types => `data-types="${types}" ${types.split(",").includes(t.type)?"":"hidden"}`;
   const toDefault = t.toAccountId || CFG.accounts.find(a=>a.id!==t.accountId)?.id;
   const invKey = t.invoiceKey || UI.month;
+  QUICK = isNew && !preset.type && !preset.from && !preset.toAccountId ? quickPicks() : [];
+  const quickHtml = QUICK.length ? `<div class="quick"><div class="flabel">Lançamento rápido</div><div class="quick-row">${QUICK.map((q,i)=>`<button type="button" class="quick-chip" data-act="quick" data-i="${i}" aria-pressed="false"><span class="swatch" style="background:${catColor(q.cat)}"></span><span class="q-txt"><b class="ellip">${esc(q.t.desc||q.cat.name)}</b><span class="money">${fmt(q.t.amount)}</span></span></button>`).join("")}</div><div class="hint">Toque para preencher. Ajuste o valor se precisar e salve.</div></div>` : "";
   const body = `
     <input type="hidden" name="type" value="${t.type}">
+    ${quickHtml}
     <div class="seg" role="group" aria-label="Tipo de lançamento">${Object.entries(TX_TYPES).map(([k,l])=>`<button type="button" data-act="tx-type" data-t="${k}" aria-pressed="${t.type===k}" ${!isNew&&k!==t.type?"disabled":""}>${l}</button>`).join("")}</div>
     <div class="frow">
       <div class="field"><label for="m-amount">Valor${t.type==="credito"?" total":""}</label><input id="m-amount" name="amount" inputmode="decimal" placeholder="0,00" value="${t.amount?fmtIn(t.amount):""}" data-live="1"></div>
@@ -1780,7 +1962,7 @@ function refreshTxModal(){
     if (cur) keys.add(cur);
     inv.innerHTML = [...keys].sort().map(k => { const iv = invoiceOf(card,k); return `<option value="${k}" ${k===cur?"selected":""}>${mLabel(k)} · ${iv.remaining>0?"falta "+fmt(iv.remaining):"paga"}</option>`; }).join("");
     if (!inv.value && inv.options.length) inv.selectedIndex = 0;
-    if (form.amount && !parseMoney(form.amount.value)){ const iv = invoiceOf(card, inv.value); if (iv.remaining>0) form.amount.value = fmtIn(iv.remaining); }
+    if (type==="fatura" && form.amount && !parseMoney(form.amount.value)){ const iv = invoiceOf(card, inv.value); if (iv.remaining>0) form.amount.value = fmtIn(iv.remaining); }
   }
 }
 function setTxType(type){
@@ -2164,6 +2346,12 @@ document.addEventListener("click", e => {
     case "auth-view": AUTH.view = el.dataset.v; AUTH.err = ""; AUTH.msg = ""; render(); break;
     case "logout": closeModal(); cloudSignOut(); break;
     case "wipe": wipeStep1(); break;
+    case "quick": applyQuick(+el.dataset.i); break;
+    case "retro": retroModal(el.dataset.k); break;
+    case "retro-skip": CFG.retroSeen = el.dataset.k; saveCfg(); render(); break;
+    case "rem-on": enableReminders(); break;
+    case "rem-off": CFG.reminders = {...CFG.reminders, on:false}; saveCfg(); caches?.delete?.("mf-lembretes").catch(()=>{}); toast("Lembretes desativados"); render(); break;
+    case "rem-test": testReminder(); break;
     case "wipe-backup": exportBackup(); break;
     case "import-local": { const l = lsRead(); if (l?.cfg){ CFG = normalizeCfg(l.cfg); MONTHS = l.months || {}; if (!CFG.profile?.name && STORE.user?.user_metadata?.name) CFG.profile = {name:STORE.user.user_metadata.name}; saveCfg(); Object.keys(MONTHS).forEach(saveMonth); toast("Dados levados para a sua conta"); render(); } break; }
     case "scrim": case "close": closeModal(); break;
@@ -2230,6 +2418,7 @@ document.addEventListener("input", e => {
 });
 document.addEventListener("change", e => {
   const el = e.target;
+  if (el.dataset?.rem){ CFG.reminders = {...CFG.reminders, [el.dataset.rem]: el.checked}; saveCfg(); scheduleReminderSync(); render(); return; }
   if (el.id==="m-logo-file") handleLogoFile(el.files[0]);
   else if (el.id==="import-file" && el.files[0]) importBackup(el.files[0]);
   else if (el.id==="importtx-file" && el.files[0]){ const f = el.files[0]; el.value = ""; readImportFile(f); }
