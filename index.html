@@ -299,12 +299,14 @@ table.t th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:va
 .frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .check{display:flex;gap:8px;align-items:flex-start;font-size:13px}
 .check input{margin-top:3px}
+.field .row .check{white-space:nowrap}
 .seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface-2);padding:4px;border-radius:11px}
 .seg button{flex:1 1 auto;border:0;background:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:600;font-size:12.5px;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
 .bank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;max-height:212px;overflow-y:auto;padding:2px}
 .bank-opt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;font-size:11px;text-align:center;line-height:1.2}
 .bank-opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.bank-opt mark{background:var(--accent-soft);color:var(--accent);font-weight:700;border-radius:3px;padding:0 1px}
 .preview-box{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--surface-2)}
 .toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:600;font-size:13px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .loading{display:grid;place-items:center;min-height:60vh;color:var(--muted)}
@@ -535,14 +537,20 @@ h1,h2,h3{color:var(--accent);font-weight:800}
   input,select,textarea{font-size:16px!important}
   /* janelas sobem de baixo */
   .scrim{align-items:flex-end;padding:0}
-  .scrim .modal{max-width:100%;border-radius:22px 22px 0 0;border-bottom:0;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px));display:flex;flex-direction:column;animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
+  .scrim{height:var(--vvh,100dvh);bottom:auto}
+  .scrim .modal{max-width:100%;border-radius:22px 22px 0 0;border-bottom:0;max-height:calc(var(--vvh,100dvh) - 16px - env(safe-area-inset-top,0px));display:flex;flex-direction:column;animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
   .scrim .modal form{display:flex;flex-direction:column;min-height:0;flex:1}
   .scrim .modal .modal-b{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+  .scrim .modal .modal-b > *{flex-shrink:0}
   .scrim .modal .modal-h{position:relative;padding-top:20px}
   .scrim .modal .modal-h::before{content:"";position:absolute;top:7px;left:50%;width:40px;height:4px;margin-left:-20px;border-radius:4px;background:var(--line)}
   .scrim .modal .modal-f{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
   .scrim .modal .modal-f .btn{flex:1}
   .scrim .modal .modal-f .spacer{display:none}
+  .bank-grid{grid-template-columns:minmax(0,1fr);max-height:min(320px,42vh);gap:4px;border:1.5px solid var(--line);border-radius:14px;padding:4px;margin-top:-6px;scroll-margin-top:12px}
+  .bank-opt{flex-direction:row;justify-content:flex-start;text-align:left;gap:12px;padding:8px 10px;font-size:15px;border:0;border-radius:10px;min-height:48px}
+  .bank-opt .logo{width:32px!important;height:32px!important}
+  #m-bsearch{scroll-margin-top:8px}
   .seg{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .seg::-webkit-scrollbar{display:none}
   .seg button{flex:0 0 auto}
@@ -1780,14 +1788,40 @@ function bankPicker(ent){
   <div class="field"><label for="m-bsearch">Instituição</label><input id="m-bsearch" type="search" autocomplete="off" placeholder="Buscar entre ${LOGO_INDEX.length} instituições com logo oficial"></div>
   <div class="bank-grid" id="bank-grid" role="group" aria-label="Instituição">${bankOptions("", ent)}</div>`;
 }
+let lastBankQ = null;
+function refreshBankSearch(el){
+  if (el.value===lastBankQ && document.getElementById("bank-grid")?.dataset.q===el.value) return;
+  lastBankQ = el.value; const g = document.getElementById("bank-grid");
+  if (g){ g.innerHTML = bankOptions(el.value, formEnt()); g.dataset.q = el.value; g.scrollTop = 0; }
+}
+// alguns teclados de celular só avisam no fim da palavra: atualiza também a cada tecla
+document.addEventListener("keyup", e => { if (e.target?.id==="m-bsearch") refreshBankSearch(e.target); });
+document.addEventListener("compositionupdate", e => { if (e.target?.id==="m-bsearch") setTimeout(() => refreshBankSearch(e.target), 0); });
+// no celular, ao tocar na busca, leva o campo para o topo da janela (acima do teclado)
+document.addEventListener("focusin", e => {
+  if (e.target?.id!=="m-bsearch" || !window.matchMedia("(max-width:820px)").matches) return;
+  setTimeout(() => e.target.scrollIntoView({block:"start", behavior:"smooth"}), 250);
+});
+// a janela encolhe junto com o teclado (iPhone e Android)
+if (window.visualViewport){
+  const setVV = () => document.documentElement.style.setProperty("--vvh", window.visualViewport.height + "px");
+  window.visualViewport.addEventListener("resize", setVV); setVV();
+}
+function hlMatch(name, nq){
+  if (!nq) return esc(name);
+  const i = normTxt(name).indexOf(nq); if (i<0) return esc(name);
+  return esc(name.slice(0,i)) + "<mark>" + esc(name.slice(i, i+nq.length)) + "</mark>" + esc(name.slice(i+nq.length));
+}
 function bankOptions(q, ent){
   const nq = normTxt(q);
+  const rank = x => { const n = normTxt(x.n); if (n.startsWith(nq)) return 0; if (n.split(/[^a-z0-9]+/).some(w => w.startsWith(nq))) return 1; return 2; };
   let list = LOGO_INDEX.filter(x => !nq || normTxt(x.n).includes(nq));
+  if (nq) list = list.map(x => ({x, r:rank(x)})).sort((a,b) => a.r-b.r || b.x.p-a.x.p || a.x.n.length-b.x.n.length || a.x.n.localeCompare(b.x.n,"pt")).map(o => o.x);
   const total = list.length;
   list = list.slice(0, nq ? 60 : 30);
   const isSel = x => ent.bank==="inst" && ent.ispb===x.i && (ent.bankName||"")===x.n;
   if (!nq && ent.bank==="inst" && !list.some(isSel)){ const cur = LOGO_INDEX.find(isSel) || {n:ent.bankName, i:ent.ispb}; if (cur.i) list.unshift(cur); }
-  const opt = x => `<button type="button" class="bank-opt" data-act="pick-bank" data-bank="inst" data-ispb="${x.i}" data-name="${esc(x.n)}" aria-pressed="${isSel(x)}">${logoHTML({bank:"inst",ispb:x.i,bankName:x.n},30)}<span>${esc(x.n)}</span></button>`;
+  const opt = x => `<button type="button" class="bank-opt" data-act="pick-bank" data-bank="inst" data-ispb="${x.i}" data-name="${esc(x.n)}" aria-pressed="${isSel(x)}">${logoHTML({bank:"inst",ispb:x.i,bankName:x.n},30)}<span>${hlMatch(x.n, nq)}</span></button>`;
   const special = [["dinheiro","Dinheiro (carteira)"],["outro","Outra instituição"]].filter(([k,n]) => !nq || normTxt(n).includes(nq))
     .map(([k,n]) => `<button type="button" class="bank-opt" data-act="pick-bank" data-bank="${k}" aria-pressed="${ent.bank===k}">${logoHTML({bank:k,name:n},30)}<span>${n}</span></button>`).join("");
   return list.map(opt).join("") + special + (total>list.length ? `<div class="tiny muted" style="grid-column:1/-1;padding:4px">Mostrando ${list.length} de ${total}. Digite para encontrar outra.</div>` : "") + (!list.length && !special ? `<div class="tiny muted" style="grid-column:1/-1;padding:4px">Nada encontrado. Use "Outra instituição" e envie o logo.</div>` : "");
@@ -2184,7 +2218,7 @@ document.addEventListener("input", e => {
   if (el.matches?.('input[inputmode="decimal"]')) maskMoney(el);
   if (el.name==="last4") el.value = el.value.replace(/\D/g,"").slice(0,4);
   if (el.dataset?.filt){ UI.filt[el.dataset.filt] = el.value; const pos = el.selectionStart; render(); const n = document.querySelector(`[data-filt="${el.dataset.filt}"]`); if (n){ n.focus(); if (n.setSelectionRange && pos!=null) try{ n.setSelectionRange(pos,pos); }catch(_){} } return; }
-  if (el.id==="m-bsearch"){ const g = document.getElementById("bank-grid"); if (g) g.innerHTML = bankOptions(el.value, formEnt()); return; }
+  if (el.id==="m-bsearch"){ refreshBankSearch(el); return; }
   if (el.closest("#mform")){ if (document.getElementById("brand-preview") || document.getElementById("card-preview")) refreshBrandPreview(); if (el.dataset.live) refreshTxModal(); }
 });
 document.addEventListener("change", e => {
