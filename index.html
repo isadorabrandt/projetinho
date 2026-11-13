@@ -482,6 +482,56 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 .rem-dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--muted)}
 .rem-fatura{background:var(--c2)} .rem-fixa{background:var(--c3)} .rem-salario{background:var(--c4)}
 @media (max-width:820px){.retro-grid,.retro-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-chip{padding:10px 8px;flex-direction:column;align-items:flex-start;gap:6px}}
+.dropzone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:36px 16px;border:2px dashed var(--line);border-radius:18px;cursor:pointer;text-align:center;background:var(--surface-2);transition:border-color .2s,background .2s}
+.dropzone:hover,.dropzone.over{border-color:var(--accent);background:var(--accent-soft)}
+.dz-icon{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
+.dropzone .dz-icon{background:var(--surface)}
+.dz-icon svg{width:24px;height:24px}
+.xt-how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.xt-how > div{display:flex;flex-direction:column;gap:4px;font-size:13px;padding:12px;border:1.5px solid var(--line);border-radius:14px}
+.xt-toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+.xt-filters{display:flex;gap:6px;flex-wrap:wrap}
+.xt-filters .tab .chip{padding:0 6px;font-size:11px}
+.xt-bulk{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.xt-bulk select,.xt-row select,.xt-row input:not([type=checkbox]){border:1.5px solid var(--line);background:var(--surface-2);border-radius:10px;padding:7px 9px;min-width:0;width:100%}
+.xt-bulk select{width:auto;max-width:100%}
+.xt-list{display:flex;flex-direction:column}
+.xt-row{display:grid;grid-template-columns:24px 132px minmax(0,1.6fr) 160px minmax(0,1fr) 128px;gap:10px;align-items:start;padding:10px 2px;border-bottom:1px solid var(--line)}
+.xt-row:last-child{border-bottom:0}
+.xt-row.off{opacity:.55}
+.xt-check{padding-top:9px}
+.xt-check input{width:18px;height:18px;accent-color:var(--accent)}
+.xt-desc{display:flex;flex-direction:column;gap:4px;min-width:0}
+.xt-orig{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xt-tags{display:flex;gap:6px;flex-wrap:wrap}
+.xt-tags .chip{white-space:normal}
+.xt-extra{min-width:0;padding-top:2px}
+.xt-amt{display:flex;align-items:center;gap:4px}
+.xt-amt input{text-align:right;font-weight:700}
+.xt-sign{font-weight:700;width:10px}
+.xt-need{border-color:var(--warn)!important;background:var(--warn-soft)!important}
+.xt-bar{position:sticky;bottom:12px;z-index:5;display:flex;gap:12px;align-items:center;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:12px 16px;box-shadow:var(--shadow);flex-wrap:wrap}
+.xt-bar .grow{display:flex;flex-direction:column;min-width:180px}
+.xt-cols{font-size:13px}
+.xt-head h2{font-size:17px;word-break:break-word}
+.xt-cols summary{cursor:pointer;font-weight:600}
+.xt-cols .frow{margin-top:10px}
+.xt-cols select{border:1.5px solid var(--line);background:var(--surface-2);border-radius:10px;padding:7px 9px;width:100%}
+@media (max-width:820px){
+  .xt-how{grid-template-columns:minmax(0,1fr)}
+  .xt-row{grid-template-columns:24px minmax(0,1fr) minmax(0,1fr);grid-template-areas:"ck desc desc" "ck date amt" "ck type extra";gap:8px}
+  .xt-check{grid-area:ck}.xt-desc{grid-area:desc}.xt-date{grid-area:date}.xt-amt{grid-area:amt}.xt-type{grid-area:type}.xt-extra{grid-area:extra}
+  .xt-bar{bottom:calc(84px + env(safe-area-inset-bottom,0px));padding:10px 12px;gap:10px;flex-wrap:nowrap;border-radius:14px}
+  .xt-bar .grow{min-width:0}
+  .xt-bar .grow b{font-size:14px}
+  .xt-bar .grow .tiny{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .xt-bar .btn{flex:none;padding:8px 14px;min-height:40px;font-size:13px}
+  .xt-filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;width:100%}
+  .xt-filters::-webkit-scrollbar{display:none}
+  .xt-filters .tab{flex:none}
+  .xt-bulk{width:100%}
+  .xt-bulk select{flex:1 1 100%}
+}
 .imp-list{display:flex;flex-direction:column;border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
 .imp-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:12px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
 .imp-row:last-child{border-bottom:0}
@@ -687,6 +737,7 @@ const I = {
   gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   left:'<path d="m15 18-6-6 6-6"/>', right:'<path d="m9 18 6-6-6-6"/>', plus:'<path d="M12 5v14M5 12h14"/>', x:'<path d="M18 6 6 18M6 6l12 12"/>',
   edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/>', swap:'<path d="M7 7h13l-4-4M17 17H4l4 4"/>', check:'<path d="M20 6 9 17l-5-5"/>',
+  upload:'<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
   eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   eyeoff:'<path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/>',
   dots:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
@@ -1184,7 +1235,7 @@ function render(){
   if (STORE.mode==="cloud" && !CFG && !STORE.cloudLoaded){ app.innerHTML = `<div class="loading">Buscando seus dados na nuvem…</div>`; return; }
   if (!CFG){ app.innerHTML = shell(onboarding()); return; }
   let body = "";
-  try { body = ({geral:vGeral, lancamentos:vLanc, contas:vContas, cartoes:vCartoes, fixas:vFixas, orcamento:vOrc, metas:vMetas, patrimonio:vPatr, ajustes:vAjustes}[UI.view] || vGeral)(); }
+  try { body = ({geral:vGeral, lancamentos:vLanc, contas:vContas, cartoes:vCartoes, fixas:vFixas, orcamento:vOrc, metas:vMetas, patrimonio:vPatr, ajustes:vAjustes, extrato:vExtrato}[UI.view] || vGeral)(); }
   catch(e){ console.error(e); body = `<div class="banner bad">Algo deu errado ao montar esta tela: ${esc(e.message)}</div>`; }
   app.innerHTML = shell(body);
   scheduleReminderSync();
@@ -1192,10 +1243,10 @@ function render(){
 function shell(body){
   const nav = Object.keys(VIEWS).map(v => `<button data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}><span class="ni">${ico(VIEW_ICONS[v])}</span><span>${VIEWS[v]}</span></button>`).join("");
   const storeTxt = STORE.mode==="cloud" ? `<span class="store-pill" id="sync-pill">${syncPill()}</span><button class="btn sm ghost" data-act="logout" style="justify-content:flex-start;padding:0">Sair da conta</button>` : STORE.mode==="db" ? `<span class="store-pill"><span class="dot ok"></span>Salvo na sua conta</span>` : `<span class="store-pill"><span class="dot warn"></span>Salvo só neste navegador</span>`;
-  const showTop = CFG && !["contas","metas","ajustes"].includes(UI.view);
+  const showTop = CFG && !["contas","metas","ajustes","extrato"].includes(UI.view);
   const tab = (v,l,i) => `<button data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}>${ico(i)}<span>${l}</span></button>`;
   const inMore = !["geral","lancamentos","cartoes"].includes(UI.view);
-  const mobile = CFG ? `<header class="mtop"><img src="${APP_LOGO}" alt="" class="mtop-logo"><b>${UI.view==="geral"?"Minhas Finanças":VIEWS[UI.view]}</b>${STORE.mode==="cloud"?`<span class="mtop-sync" id="sync-pill-m">${syncPill()}</span>`:""}</header>
+  const mobile = CFG ? `<header class="mtop"><img src="${APP_LOGO}" alt="" class="mtop-logo"><b>${UI.view==="geral"?"Minhas Finanças":(VIEWS[UI.view]||"Importar extrato")}</b>${STORE.mode==="cloud"?`<span class="mtop-sync" id="sync-pill-m">${syncPill()}</span>`:""}</header>
     <nav class="tabbar" aria-label="Navegação">${tab("geral","Início","home")}${tab("lancamentos","Lançamentos","list")}
       <button class="tab-fab" data-act="new-tx" aria-label="Novo lançamento">${ico("plus")}</button>
       ${tab("cartoes","Cartões","card")}<button data-act="more" ${inMore?'aria-current="page"':""}>${ico("dots")}<span>Mais</span></button></nav>` : "";
@@ -1212,7 +1263,7 @@ function shell(body){
     ${STORE.note?`<div class="banner">${esc(STORE.note)}</div>`:""}
     ${STORE.mode==="local" && CFG ? `<div class="banner info"><span>Os dados ficam salvos apenas neste navegador. Use <b>Ajustes → Backup</b> para guardar uma cópia.</span></div>`:""}
     ${CFG && UI.view==="geral" ? greeting() : ""}
-    ${showTop?topbar():CFG?`<div class="topbar plain"><h1 style="font-size:20px">${VIEWS[UI.view]}</h1><div class="spacer"></div><button class="btn primary" data-act="new-tx">${ico("plus")}Lançamento</button></div>`:""}
+    ${showTop?topbar():CFG?`<div class="topbar plain"><h1 style="font-size:20px">${VIEWS[UI.view]||"Importar extrato"}</h1><div class="spacer"></div><button class="btn primary" data-act="new-tx">${ico("plus")}Lançamento</button></div>`:""}
     ${body}
   </main></div>`;
 }
@@ -1224,7 +1275,7 @@ function greeting(){
   return `<div class="greet"><h1>${oi}, ${esc(nome)}</h1><span class="muted">${hoje}</span></div>`;
 }
 function moreSheet(){
-  const items = ["orcamento","contas","fixas","metas","patrimonio","ajustes"].map(v => `<button class="more-item" data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}>${ico(VIEW_ICONS[v])}<span>${VIEWS[v]}</span></button>`).join("");
+  const items = ["orcamento","contas","fixas","metas","patrimonio","ajustes"].map(v => `<button class="more-item" data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}>${ico(VIEW_ICONS[v])}<span>${VIEWS[v]}</span></button>`).join("") + `<button class="more-item" data-act="nav" data-v="extrato" ${UI.view==="extrato"?'aria-current="page"':""}>${ico("upload")}<span>Importar extrato</span></button>`;
   openModal({title:"Mais", body:`<div class="more-grid">${items}</div>
     <div class="flabel">Tema</div><div class="skin-row">${Object.entries(SKINS).map(([k,v])=>`<button data-act="skin" data-m="${k}" aria-pressed="${currentSkin()===k}">${v.label}</button>`).join("")}</div>
     ${STORE.mode==="cloud"?`<button class="btn" data-act="logout">${ico("logout")}Sair da conta</button>`:""}`});
@@ -1838,6 +1889,7 @@ function vAjustes(){
         <div><button class="btn primary" type="submit">Salvar</button></div>
       </form>
     </section>
+    <section class="card s12 xt-entry"><div class="row" style="flex-wrap:wrap;gap:14px"><span class="dz-icon">${ico("upload")}</span><div class="grow" style="min-width:220px"><h2>Importar extrato</h2><div class="tiny muted">Suba o arquivo OFX ou CSV do banco e revise os lançamentos antes de salvar: descrição, valor, data, tipo e categoria.</div></div><button class="btn primary" data-act="nav" data-v="extrato">Importar extrato</button></div></section>
     ${remindersSettings()}
     <section class="card s6"><div class="card-h"><div><h2>Aparência</h2><div class="sub">Escolha o tema do app</div></div></div>
       <div class="skin-pick">${Object.entries(SKINS).map(([k,v])=>`<button class="skin-opt" data-act="skin" data-m="${k}" aria-pressed="${currentSkin()===k}"><span class="skin-sw">${v.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</span>${v.label}</button>`).join("")}</div>
@@ -2251,6 +2303,320 @@ function importBackup(file){
   r.readAsText(file);
 }
 
+/* ============ importar extrato (OFX / CSV) ============ */
+let XT = null; // estado da importação em andamento (não é salvo)
+const hashStr = s => { let h = 5381; for (let i=0;i<s.length;i++) h = ((h<<5)+h+s.charCodeAt(i))|0; return (h>>>0).toString(36); };
+function decodeBytes(buf){
+  let t = new TextDecoder("utf-8").decode(buf);
+  if (t.includes("\uFFFD")) { try { t = new TextDecoder("windows-1252").decode(buf); } catch(e){} }
+  return t.replace(/^﻿/, "");
+}
+function parseAmt(v){
+  let s = String(v ?? "").trim(); if (!s) return NaN;
+  s = s.replace(/R\$/gi,"").replace(/\s/g,"");
+  let neg = false;
+  if (/^\(.*\)$/.test(s)){ neg = true; s = s.slice(1,-1); }
+  if (/D$/i.test(s)){ neg = true; s = s.slice(0,-1); } else if (/C$/i.test(s)) s = s.slice(0,-1);
+  if (s.startsWith("-")){ neg = !neg; s = s.slice(1); } else if (s.endsWith("-")){ neg = !neg; s = s.slice(0,-1); }
+  s = s.replace(/^\+/,"");
+  if (!/^[\d.,]+$/.test(s)) return NaN;
+  const lc = s.lastIndexOf(","), ld = s.lastIndexOf(".");
+  if (lc>-1 && ld>-1) s = lc>ld ? s.replace(/\./g,"").replace(",",".") : s.replace(/,/g,"");
+  else if (lc>-1) s = s.replace(/\./g,"").replace(",",".");
+  else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g,"");
+  const n = parseFloat(s); return isNaN(n) ? NaN : r2(neg ? -n : n);
+}
+function parseDateBR(v){
+  const s = String(v ?? "").trim();
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = s.match(/^(\d{4})(\d{2})(\d{2})/); if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/); if (m){ const y = m[3].length===2 ? "20"+m[3] : m[3]; return `${y}-${pad(+m[2])}-${pad(+m[1])}`; }
+  return "";
+}
+function parseOFX(text){
+  const isCard = /<CREDITCARDMSGSRSV1>|<CCSTMTRS>/i.test(text);
+  const tag = (blk, t) => { const m = blk.match(new RegExp("<"+t+">([^<\\r\\n]*)", "i")); return m ? m[1].trim() : ""; };
+  const org = tag(text, "ORG"), bankId = tag(text, "BANKID");
+  const rows = [];
+  (text.match(/<STMTTRN>[\s\S]*?(?=<\/STMTTRN>|<STMTTRN>|<\/BANKTRANLIST>)/gi) || []).forEach(b => {
+    const date = parseDateBR(tag(b,"DTPOSTED")), amount = parseAmt(tag(b,"TRNAMT"));
+    const name = tag(b,"NAME"), memo = tag(b,"MEMO");
+    const desc = (memo && name && !memo.toLowerCase().includes(name.toLowerCase())) ? `${memo} ${name}` : (memo || name);
+    if (date && !isNaN(amount) && amount !== 0) rows.push({date, amount, desc: desc.replace(/\s+/g," ").trim(), fitid: tag(b,"FITID")});
+  });
+  return {rows, isCard, org, bankId};
+}
+function splitCSV(text){
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  const sample = lines.slice(0, 15).join("\n");
+  const delim = [";", ",", "\t", "|"].map(d => [d, (sample.match(new RegExp(d==="|"?"\\|":d, "g"))||[]).length]).sort((a,b)=>b[1]-a[1])[0][0];
+  const parseLine = l => { const out = []; let cur = "", q = false;
+    for (let i=0;i<l.length;i++){ const c = l[i];
+      if (q){ if (c === '"'){ if (l[i+1] === '"'){ cur += '"'; i++; } else q = false; } else cur += c; }
+      else if (c === '"') q = true; else if (c === delim){ out.push(cur); cur = ""; } else cur += c; }
+    out.push(cur); return out.map(x => x.trim()); };
+  return lines.map(parseLine);
+}
+const COLRX = {date:/^(data|date|dt)\b|data (do )?lan|data mov/i, desc:/descri|title|t[ií]tulo|hist[oó]rico|lan[cç]amento$|estabelec|memo|detalhe|^nome|identifica[cç][aã]o/i, amount:/^valor|amount|quantia|montante|valor \(r\$\)/i, credit:/cr[eé]dito|entrada/i, debit:/d[eé]bito|sa[ií]da/i};
+function guessCSV(table){
+  let h = -1;
+  for (let i=0;i<Math.min(table.length,20);i++){ const r = table[i]; const hits = ["date","desc","amount"].filter(k => r.some(c => COLRX[k].test(c))).length; if (hits >= 2){ h = i; break; } }
+  const head = h >= 0 ? table[h] : table[0].map((_,i)=>`Coluna ${i+1}`);
+  const find = k => head.findIndex(c => COLRX[k].test(c));
+  const dateCol = find("date");
+  let descCol = head.findIndex((c,i) => i!==dateCol && /descri|title|t[ií]tulo|hist[oó]rico|estabelec|memo|detalhe/i.test(c));
+  if (descCol < 0) descCol = head.findIndex((c,i) => i!==dateCol && COLRX.desc.test(c));
+  const cols = {date:dateCol, desc:descCol, amount:find("amount"), credit:-1, debit:-1};
+  if (cols.amount < 0){ cols.credit = find("credit"); cols.debit = find("debit"); }
+  const body = table.slice(h+1);
+  // sem cabeçalho reconhecido: descobre pelas células
+  if (cols.date < 0) cols.date = head.findIndex((_,i) => body.slice(0,5).every(r => parseDateBR(r[i])));
+  if (cols.amount < 0 && cols.credit < 0) cols.amount = head.findIndex((_,i) => i!==cols.date && body.slice(0,5).every(r => !isNaN(parseAmt(r[i]))));
+  if (cols.desc < 0){ let best = -1, len = 0; head.forEach((_,i) => { if (i===cols.date || i===cols.amount) return; const L = body.slice(0,8).reduce((s,r)=>s+(r[i]||"").length,0); if (L > len){ len = L; best = i; } }); cols.desc = best; }
+  return {head, body, cols};
+}
+function rowsFromCSV(c){
+  const out = [];
+  c.body.forEach(r => {
+    const date = parseDateBR(r[c.cols.date]); if (!date) return;
+    let amount = c.cols.amount >= 0 ? parseAmt(r[c.cols.amount]) : (parseAmt(r[c.cols.credit]) || 0) - Math.abs(parseAmt(r[c.cols.debit]) || 0);
+    const desc = String(r[c.cols.desc] ?? "").replace(/\s+/g," ").trim();
+    if (isNaN(amount) || amount === 0 || /^saldo|saldo (anterior|do dia|final|dispon)|^total\b/i.test(desc)) return;
+    out.push({date, amount:r2(amount), desc, fitid:""});
+  });
+  return out;
+}
+function titleCase(s){ return s.toLowerCase().replace(/(^|[\s\-/(])([a-zà-ú])/g, (m,a,b)=>a+b.toUpperCase()).replace(/\b(De|Da|Do|Das|Dos|E|Em|Para)\b/g, w=>w.toLowerCase()).replace(/^./, c=>c.toUpperCase()); }
+function cleanDesc(raw){
+  let s = raw.replace(/\s+/g," ").trim(), m;
+  if ((m = s.match(/transfer[eê]ncia (enviada|recebida) pelo pix\s*-\s*([^-•]+)/i))) return (m[1].toLowerCase()==="enviada" ? "Pix para " : "Pix de ") + titleCase(m[2].trim());
+  if ((m = s.match(/^(pix (enviado|recebido|transf\w*|qr)\s*(para|de)?)\s+(.+)/i))) { const recv = /receb|de$/i.test(m[1]); let nm = m[4].replace(/\s+\d{2}\/\d{2}(\/\d{2,4})?$/,"").trim(); if (nm===nm.toUpperCase()) nm = titleCase(nm); return (recv ? "Pix de " : "Pix para ") + nm; }
+  s = s.replace(/^(compra (no )?(d[eé]bito|cr[eé]dito|cart[aã]o)( (elo|visa|master\w*|maestro))?|compra (elo|visa|master\w*|maestro|deb\w*)|compra|pagamento (de )?boleto( efetuado)?|pag\*|pg \*|deb(ito)? aut(om[aá]tico)?|d[eé]bito automático)\s*[-:]?\s*/i, "");
+  s = s.replace(/^(pag\*|pg \*|ec \*|mp \*|mercadopago\*|pagseguro\*?)\s*/i, "");
+  s = s.replace(/\s+-\s+•••.*$/,"").replace(/\s+\d{2}\/\d{2}(\/\d{2,4})?$/,"").replace(/\s{2,}/g," ").replace(/\s*-\s*$/,"").trim();
+  if (s === s.toUpperCase() && /[A-Z]/.test(s)) s = titleCase(s);
+  return s || raw;
+}
+const descKey = s => normTxt(s).replace(/\b(pix|para|de|compra|debito|credito|cartao|transferencia|enviada|recebida|pelo|pagamento|parcela)\b/g," ").replace(/[^a-z ]/g," ").replace(/\s+/g," ").trim().split(" ").slice(0,3).join(" ");
+const KW = [
+  [/uber|\b99\b|99 ?pop|99app|cabify|taxi|onibus|metro|bilhete unico|posto|combust|gasolina|etanol|shell|ipiranga|petrobras|estaciona|pedagio|sem parar|veloe/, "transporte"],
+  [/ifood|rappi|mercado|supermerc|atacad|assai|carrefour|padaria|panific|restaur|lanch|pizz|burger|mc ?donald|bk |subway|cafe|cafeteria|acougue|hortifruti|sorvet|doceria|confeit|bar |boteco|emporio/, "aliment"],
+  [/spotify|netflix|prime video|amazon prime|disney|hbo|\bmax\b|youtube|apple\.com|icloud|google one|deezer|globoplay|paramount|crunchyroll|assinatura|recarga/, "assinatura"],
+  [/farmac|drogar|droga ?raia|drogasil|pague menos|panvel|clinica|consulta|laborat|exame|hospital|dentist|odonto|psicolog|unimed/, "saude"],
+  [/cinema|ingresso|sympla|eventim|show|teatro|parque|steam|playstation|xbox|nintendo|bar e|balada/, "lazer"],
+  [/renner|riachuelo|c&a|\bcea\b|zara|shein|shopee|aliexpress|mercado ?livre|mercadolivre|magalu|magazine|americanas|amazon|boticario|natura|sephora|salao|cabeleir|beleza|perfum|manicure|estetica|papelaria/, "compra"],
+  [/escola|curso|faculdade|universidade|udemy|alura|coursera|livraria|livro|mensalidade/, "educa"],
+  [/salario|folha de pag|proventos|pagamento de salario|vencimentos/, "salario"],
+  [/rendimento|juros sobre|dividend|remunera/, "rendimento"],
+  [/aluguel|condominio|energia|celesc|copel|enel|cemig|light|agua|saneamento|casan|sabesp|internet|vivo|claro|tim|oi /, "moradia"]
+];
+function suggestCat(desc, kind){
+  const key = descKey(desc), rules = CFG.importRules || {};
+  if (key && rules[key] && catById(rules[key])?.kind===kind) return rules[key];
+  if (key){ const hit = allTx().slice().reverse().find(t => t.catId && descKey(t.desc||"")===key && catById(t.catId)?.kind===kind); if (hit) return hit.catId; }
+  const n = normTxt(desc);
+  for (const [rx, name] of KW){ if (!rx.test(n)) continue; const c = CFG.categories.find(c => c.kind===kind && normTxt(c.name).includes(name)); if (c) return c.id; }
+  return "";
+}
+const COMPE = {"1":"brasil","33":"santander","104":"caixa","237":"bradesco","260":"nubank","341":"itau","77":"inter","336":"c6","85":"ailos","102":"xp","290":"pagbank","323":"mercado pago","380":"picpay","212":"original","756":"sicoob","748":"sicredi","208":"btg","655":"neon"};
+function guessDest(meta, fileName){
+  const code = String(+(meta.bankId||"").replace(/\D/g,"") || "");
+  const nameHay = normTxt(fileName).replace(/(^|[^a-z])nu([^a-z]|$)/g," nubank ");
+  const hay = normTxt([meta.org, COMPE[code]||"", meta.sig||"", nameHay].join(" "));
+  const byBank = list => list.find(x => { const b = normTxt(bankName(x)).split(" ")[0]; return b && b.length>1 && hay.includes(b); });
+  if (meta.isCard){ const c = byBank(CFG.cards) || CFG.cards[0]; if (c) return "card:"+c.id; }
+  const a = byBank(CFG.accounts.filter(a=>a.type!=="garantia")) || CFG.accounts[0];
+  return a ? "acc:"+a.id : (CFG.cards[0] ? "card:"+CFG.cards[0].id : "");
+}
+function nearestInvoice(card, date){
+  const keys = [addM(mk(date),-1), mk(date), addM(mk(date),1)];
+  let best = keys[1], bd = 1e9;
+  keys.forEach(k => { const iv = invoiceOf(card,k); const d = Math.abs(new Date(iv.dueDate) - new Date(date)) / 864e5 - (iv.remaining>0 ? 3 : 0); if (d < bd){ bd = d; best = k; } });
+  return best;
+}
+function xtDefaults(){
+  const [kind, id] = XT.dest.split(":"), isCard = kind==="card";
+  const purchSign = isCard ? (XT.rows.filter(r=>r.raw>0).length >= XT.rows.filter(r=>r.raw<0).length ? 1 : -1) : -1;
+  const me = normTxt(CFG.profile?.name || "").split(" ")[0];
+  const seenParc = new Set();
+  XT.rows.forEach(r => {
+    const n = normTxt(r.orig); r.amount = Math.abs(r.raw); r.parc = null; r.other = ""; r.catId = ""; r.note = ""; r.dup = ""; r.date = r.date0;
+    if (isCard){
+      if (Math.sign(r.raw) === purchSign){
+        r.type = "credito";
+        const pm = r.orig.match(/parcela\s*(\d{1,2})\s*\/\s*(\d{1,2})|\b(\d{1,2})\s*\/\s*(\d{1,2})\s*$/i);
+        if (pm){ const k = +(pm[1]||pm[3]), t = +(pm[2]||pm[4]); if (t>1 && k>=1 && k<=t){
+          r.parc = {k, n:t}; r.desc = r.desc.replace(/\s*-?\s*parcela\s*\d+\s*\/\s*\d+/i,"").replace(/\s+\d{1,2}\s*\/\s*\d{1,2}\s*$/,"").trim();
+          r.date = addDays(dateIn(addM(mk(r.date0), -(k-1)), +r.date0.slice(8,10)), 0);
+          const pk = descKey(r.desc)+"|"+r.amount+"|"+t; if (seenParc.has(pk)){ r.type = "ignorar"; r.note = "Outra parcela da mesma compra"; } seenParc.add(pk); } }
+      } else { r.type = "ignorar"; r.note = /estorno|reembolso|devolu/.test(n) ? "Estorno: o app não abate estornos da fatura" : "Pagamento da fatura: lance pela conta que pagou"; }
+    } else {
+      if (/pagamento de fatura|pagto fatura|pag fatura|fatura (do )?cart|pagamento cartao|pgto cartao/.test(n) && r.raw<0 && CFG.cards.length){
+        r.type = "fatura"; const c = CFG.cards.find(c => n.includes(normTxt(bankName(c)).split(" ")[0])) || CFG.cards.find(c=>c.payAccountId===id) || CFG.cards[0]; r.other = c.id;
+      } else if (/aplica|resgat|\brdb\b|\bcdb\b|caixinha|cofrinho|guardad|poupan|investim|limite garantido|nu limite/.test(n)){
+        r.type = "transfer"; const src = accById(id); const sav = CFG.accounts.filter(a => a.id!==id && isSaving(a)).sort((a,b) => (a.type==="garantia") - (b.type==="garantia"));
+        const same = sav.find(a => normTxt(bankName(a))===normTxt(bankName(src||{}))); r.other = (same || sav[0] || CFG.accounts.find(a=>a.id!==id))?.id || "";
+      } else if (me && me.length>2 && n.includes(me) && /pix|transf|ted|doc/.test(n)){
+        const other = CFG.accounts.find(a => a.id!==id && n.includes(normTxt(bankName(a)).split(" ")[0]));
+        if (other){ r.type = "transfer"; r.other = other.id; } else r.type = r.raw<0 ? "despesa" : "receita";
+      } else r.type = r.raw<0 ? "despesa" : "receita";
+    }
+    if (["despesa","receita","credito"].includes(r.type)) r.catId = suggestCat(r.desc, r.type==="receita" ? "receita" : "despesa");
+    const inc = +CFG.income.amount || 0;
+    if (r.type==="receita" && (/salario|folha|proventos/.test(n) || (inc>0 && Math.abs(r.amount-inc) <= inc*0.1 && !/estorno|devolu|reembolso/.test(n)))){
+      r.salary = true; const sc = CFG.categories.find(c=>c.kind==="receita" && /salario/.test(normTxt(c.name))); if (sc) r.catId = sc.id; }
+    // repetidos
+    const destField = isCard ? "cardId" : null;
+    r.id = "ext-" + hashStr([XT.dest, r.parc ? descKey(r.desc)+"|"+r.parc.n : r.date0, r.amount, r.fitid || r.orig].join("|"));
+    if (findTx(r.id)){ r.dup = "Já importado"; }
+    else {
+      const near = allTx().find(t => {
+        if (isCard){ if (t.type!=="credito" || t.cardId!==id) return false; if (r.parc) return (+t.installments||1)===r.parc.n && Math.abs((parcelsOf(t)[0]?.amount||0)-r.amount)<0.02; return Math.abs(t.amount-r.amount)<0.005 && Math.abs(new Date(t.date)-new Date(r.date))<=3*864e5; }
+        if (![t.accountId, t.toAccountId].includes(id)) return false;
+        return Math.abs(Math.abs(t.amount)-r.amount)<0.005 && Math.abs(new Date(t.date)-new Date(r.date0))<=2*864e5;
+      });
+      if (near) r.dup = `Parece repetido: “${near.desc||"lançamento"}” em ${dBR(near.date)}`;
+    }
+    r.include = !r.dup && r.type!=="ignorar";
+  });
+}
+async function readStatement(file){
+  const buf = await file.arrayBuffer(), text = decodeBytes(buf), name = file.name || "extrato";
+  let rows = [], meta = {isCard:false, org:"", bankId:""}, csv = null, format;
+  if (/<OFX>|OFXHEADER|<STMTTRN>/i.test(text)){ format = "OFX"; const o = parseOFX(text); rows = o.rows; meta = o; }
+  else {
+    format = "CSV"; const table = splitCSV(text);
+    if (!table.length){ toast("Não encontrei lançamentos nesse arquivo."); return; }
+    csv = guessCSV(table); rows = rowsFromCSV(csv);
+    const h0 = table[0].join(",").toLowerCase();
+    if (/^data,valor,identificador,descri/.test(h0) || /^date,title,amount/.test(h0)) meta.sig = "nubank";
+    meta.isCard = /^date,title,amount/.test(table[0].join(",").toLowerCase()) || /fatura|cart[aã]o/.test(normTxt(name)) && !/conta/.test(normTxt(name));
+  }
+  if (!rows.length && !csv){ toast("Não encontrei lançamentos nesse arquivo. Use OFX ou CSV exportado pelo banco."); return; }
+  XT = {name, format, csv, filter:"todos", rows: rows.map((r,i) => ({i, raw:r.amount, date0:r.date, date:r.date, orig:r.desc, desc:cleanDesc(r.desc), fitid:r.fitid||"", type:"", include:true}))};
+  XT.dest = guessDest(meta, name);
+  if (!XT.dest){ toast("Cadastre uma conta ou cartão antes de importar."); XT = null; return; }
+  xtDefaults(); UI.view = "extrato"; render(); window.scrollTo(0,0);
+}
+function xtRebuildFromCSV(){
+  const rows = rowsFromCSV(XT.csv);
+  XT.rows = rows.map((r,i) => ({i, raw:r.amount, date0:r.date, date:r.date, orig:r.desc, desc:cleanDesc(r.desc), fitid:"", type:"", include:true}));
+  xtDefaults();
+}
+const XT_TYPES_ACC = {despesa:"Despesa", receita:"Receita", transfer:"Transferência", fatura:"Pagamento de fatura", ignorar:"Ignorar"};
+const XT_TYPES_CARD = {credito:"Compra no cartão", ignorar:"Ignorar"};
+function xtTotals(){
+  let out = 0, inn = 0, n = 0, semCat = 0;
+  XT.rows.forEach(r => { if (!r.include || r.type==="ignorar") return; n++;
+    const a = r.parc ? r.amount : r.amount;
+    if (r.type==="receita") inn += a; else if (r.type==="transfer"){ if (r.raw<0) out += a; else inn += a; } else out += a;
+    if (["despesa","receita","credito"].includes(r.type) && !r.catId) semCat++; });
+  return {out:r2(out), inn:r2(inn), n, semCat};
+}
+function xtRowHtml(r){
+  const isCard = XT.dest.startsWith("card:"), types = isCard ? XT_TYPES_CARD : XT_TYPES_ACC;
+  const kind = r.type==="receita" ? "receita" : "despesa";
+  const catOpts = `<option value="">Sem categoria</option>` + CFG.categories.filter(c=>c.kind===kind).map(c=>`<option value="${c.id}" ${c.id===r.catId?"selected":""}>${esc(c.name)}</option>`).join("");
+  let extra = "";
+  if (["despesa","receita","credito"].includes(r.type)) extra = `<select data-xr="${r.i}" data-xf="catId" aria-label="Categoria" class="${r.catId?"":"xt-need"}">${catOpts}</select>`;
+  else if (r.type==="transfer") extra = `<select data-xr="${r.i}" data-xf="other" aria-label="Outra conta" class="${r.other?"":"xt-need"}"><option value="">${r.raw<0?"Para qual conta?":"De qual conta?"}</option>${CFG.accounts.filter(a=>"acc:"+a.id!==XT.dest).map(a=>`<option value="${a.id}" ${a.id===r.other?"selected":""}>${r.raw<0?"→ ":"← "}${esc(a.name)}</option>`).join("")}</select>`;
+  else if (r.type==="fatura") extra = `<select data-xr="${r.i}" data-xf="other" aria-label="Cartão" class="${r.other?"":"xt-need"}"><option value="">Qual cartão?</option>${CFG.cards.map(c=>`<option value="${c.id}" ${c.id===r.other?"selected":""}>${esc(c.name)} · ${esc(bankName(c))}</option>`).join("")}</select>`;
+  else extra = `<span class="tiny muted">${esc(r.note||"Não será importado")}</span>`;
+  const sign = r.type==="receita" || (r.type==="transfer" && r.raw>0) ? "+" : r.type==="ignorar" ? "" : "−";
+  const tags = [r.parc ? `<span class="chip acc">Parcela ${r.parc.k}/${r.parc.n} → compra em ${r.parc.n}x de ${fmt(r.amount)}</span>` : "", r.dup ? `<span class="chip warn">${esc(r.dup)}</span>` : "", r.salary ? `<span class="chip good">Salário</span>` : ""].filter(Boolean).join("");
+  return `<div class="xt-row ${r.include && r.type!=="ignorar" ? "" : "off"}" data-row="${r.i}">
+    <label class="xt-check"><input type="checkbox" data-xr="${r.i}" data-xf="include" ${r.include && r.type!=="ignorar"?"checked":""} ${r.type==="ignorar"?"disabled":""} aria-label="Importar esta linha"></label>
+    <input class="xt-date" type="date" value="${r.date}" data-xr="${r.i}" data-xf="date" aria-label="Data">
+    <div class="xt-desc"><input value="${esc(r.desc)}" data-xr="${r.i}" data-xf="desc" aria-label="Descrição">${r.orig!==r.desc?`<span class="xt-orig" title="${esc(r.orig)}">${esc(r.orig)}</span>`:""}${tags?`<div class="xt-tags">${tags}</div>`:""}</div>
+    <select class="xt-type" data-xr="${r.i}" data-xf="type" aria-label="Tipo">${Object.entries(types).map(([k,l])=>`<option value="${k}" ${k===r.type?"selected":""}>${l}</option>`).join("")}</select>
+    <div class="xt-extra">${extra}</div>
+    <div class="xt-amt"><span class="xt-sign ${sign==="+"?"pos":""}">${sign}</span><input inputmode="decimal" value="${fmtIn(r.amount)}" data-xr="${r.i}" data-xf="amount" aria-label="Valor"></div>
+  </div>`;
+}
+function vExtrato(){
+  if (!XT){
+    return `<div class="grid"><section class="card s12">
+      <div class="card-h"><div><h2>Importar extrato</h2><div class="sub">Traga os lançamentos do banco de uma vez e só confira antes de salvar.</div></div></div>
+      <label class="dropzone" for="xt-file" id="xt-drop">
+        <span class="dz-icon">${ico("upload")}</span>
+        <b>Arraste o arquivo do extrato aqui</b><span class="muted">ou toque para escolher · OFX ou CSV</span>
+      </label><input id="xt-file" type="file" accept=".ofx,.qfx,.csv,.txt,application/x-ofx,text/csv" hidden>
+      <div class="xt-how">
+        <div><b>1. Exporte no app ou site do banco</b><span class="muted">Procure por Extrato → Exportar (ou Compartilhar) e escolha <b>OFX</b>, que funciona em quase todos os bancos. CSV também serve.</span></div>
+        <div><b>2. Escolha conta ou cartão</b><span class="muted">O app tenta adivinhar pelo banco do arquivo. Extratos de cartão viram compras nas faturas.</span></div>
+        <div><b>3. Confira e importe</b><span class="muted">Descrições limpas, categorias sugeridas e repetidos deixados de fora. Edite o que quiser antes de salvar.</span></div>
+      </div>
+    </section></div>`;
+  }
+  const T = xtTotals(), F = XT.filter;
+  const destOpts = `<optgroup label="Contas">${CFG.accounts.map(a=>`<option value="acc:${a.id}" ${XT.dest==="acc:"+a.id?"selected":""}>${esc(a.name)}</option>`).join("")}</optgroup>${CFG.cards.length?`<optgroup label="Cartões">${CFG.cards.map(c=>`<option value="card:${c.id}" ${XT.dest==="card:"+c.id?"selected":""}>Cartão ${esc(c.name)} · ${esc(bankName(c))}</option>`).join("")}</optgroup>`:""}`;
+  const dates = XT.rows.map(r=>r.date0).sort();
+  const vis = XT.rows.filter(r => F==="todos" || (F==="semcat" && r.include && ["despesa","receita","credito"].includes(r.type) && !r.catId) || (F==="repetidos" && r.dup) || (F==="fora" && (!r.include || r.type==="ignorar")));
+  const cnt = {semcat:T.semCat, repetidos:XT.rows.filter(r=>r.dup).length, fora:XT.rows.filter(r=>!r.include||r.type==="ignorar").length};
+  const destEnt = XT.dest.startsWith("card:") ? cardById(XT.dest.slice(5)) : accById(XT.dest.slice(4));
+  const csvMap = XT.csv ? `<details class="xt-cols"><summary>Colunas do CSV</summary><div class="frow">${["date","desc","amount"].map(k=>`<div class="field"><label>${{date:"Data",desc:"Descrição",amount:"Valor"}[k]}</label><select data-xcol="${k}">${XT.csv.head.map((h,i)=>`<option value="${i}" ${XT.csv.cols[k]===i?"selected":""}>${esc(h||"Coluna "+(i+1))}</option>`).join("")}${k==="amount"?`<option value="-1" ${XT.csv.cols.amount<0?"selected":""}>Crédito/Débito separados</option>`:""}</select></div>`).join("")}</div></details>` : "";
+  return `<div class="grid">
+    <section class="card s12 xt-head">
+      <div class="row" style="flex-wrap:wrap;gap:14px">${destEnt?logoHTML(destEnt,40):""}<div class="grow" style="min-width:200px"><h2>${esc(XT.name)}</h2><div class="tiny muted">${XT.format} · ${XT.rows.length} lançamento(s)${dates.length?` · ${dBR(dates[0])} a ${dBR(dates[dates.length-1])}/${dates[dates.length-1].slice(0,4)}`:""}</div></div>
+      <div class="field" style="min-width:220px"><label for="xt-dest">Este extrato é de</label><select id="xt-dest" data-xdest="1">${destOpts}</select></div>
+      <button class="btn" data-act="xt-cancel">Trocar arquivo</button></div>
+      ${csvMap}
+    </section>
+    <section class="card s12">
+      <div class="xt-toolbar">
+        <div class="xt-filters">${[["todos","Todos",XT.rows.length],["semcat","Sem categoria",cnt.semcat],["repetidos","Repetidos",cnt.repetidos],["fora","Fora da importação",cnt.fora]].map(([k,l,n])=>`<button class="tab" data-act="xt-filter" data-f="${k}" aria-pressed="${F===k}">${l} <span class="chip">${n}</span></button>`).join("")}</div>
+        <div class="xt-bulk"><select data-xbulk="1" aria-label="Categoria para as linhas sem categoria"><option value="">Aplicar categoria às sem categoria…</option>${CFG.categories.filter(c=>c.kind==="despesa").map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+        <button class="btn sm" data-act="xt-all" data-v="1">Marcar todas</button><button class="btn sm" data-act="xt-all" data-v="0">Desmarcar todas</button></div>
+      </div>
+      <div class="xt-list">${vis.length ? vis.map(xtRowHtml).join("") : `<div class="empty">Nada neste filtro.</div>`}</div>
+    </section>
+    <div class="xt-bar s12"><div class="grow"><b id="xt-n">${T.n} para importar</b><span class="tiny muted" id="xt-sum">Saídas ${fmt(T.out)} · Entradas ${fmt(T.inn)}${T.semCat?` · ${T.semCat} sem categoria`:""}</span></div>
+      <button class="btn primary" data-act="xt-import" ${T.n?"":"disabled"}>Importar</button></div>
+  </div>`;
+}
+function xtUpdateBar(){
+  const T = xtTotals(), n = document.getElementById("xt-n"), s = document.getElementById("xt-sum"), b = document.querySelector('[data-act="xt-import"]');
+  if (n) n.textContent = `${T.n} para importar`; if (s) s.textContent = `Saídas ${fmt(T.out)} · Entradas ${fmt(T.inn)}${T.semCat?` · ${T.semCat} sem categoria`:""}`;
+  if (b){ b.disabled = !T.n; }
+}
+function xtEdit(el){
+  const r = XT?.rows[+el.dataset.xr]; if (!r) return;
+  const f = el.dataset.xf;
+  if (f==="include"){ r.include = el.checked; el.closest(".xt-row")?.classList.toggle("off", !el.checked); xtUpdateBar(); return; }
+  if (f==="desc"){ r.desc = el.value; return; }
+  if (f==="date"){ if (el.value) r.date = el.value; return; }
+  if (f==="amount"){ r.amount = Math.abs(parseMoney(el.value)); xtUpdateBar(); return; }
+  if (f==="type"){ r.type = el.value; r.other = ""; if (["despesa","receita","credito"].includes(r.type)) r.catId = r.catId && catById(r.catId)?.kind===(r.type==="receita"?"receita":"despesa") ? r.catId : suggestCat(r.desc, r.type==="receita"?"receita":"despesa"); if (r.type!=="ignorar") r.include = true; render(); return; }
+  if (f==="other"){ r.other = el.value; el.classList.toggle("xt-need", !el.value); return; }
+  if (f==="catId"){
+    r.catId = el.value; el.classList.toggle("xt-need", !el.value);
+    if (el.value){ const key = descKey(r.desc); let k = 0;
+      XT.rows.forEach(o => { if (o!==r && !o.catId && o.type===r.type && descKey(o.desc)===key && key){ o.catId = el.value; k++; } });
+      if (k){ toast(`Aplicado também a ${k} lançamento(s) parecido(s)`); render(); return; } }
+    xtUpdateBar();
+  }
+}
+function xtImport(){
+  const [kind, id] = XT.dest.split(":"); const rules = CFG.importRules ||= {};
+  const bad = XT.rows.find(r => r.include && (r.type==="transfer"||r.type==="fatura") && !r.other);
+  if (bad){ XT.filter = "todos"; render(); toast(`Escolha ${bad.type==="fatura"?"o cartão":"a outra conta"} em “${bad.desc}”.`); document.querySelector(`.xt-row[data-row="${bad.i}"]`)?.scrollIntoView({block:"center"}); return; }
+  let n = 0, last = "";
+  XT.rows.forEach(r => {
+    if (!r.include || r.type==="ignorar" || !(r.amount>0) || findTx(r.id)) return;
+    const t = {id:r.id, createdAt:Date.now()+n, type:r.type, amount:r2(r.amount), date:r.date, desc:r.desc.trim() || "Lançamento", note:r.orig!==r.desc ? r.orig : "", ext:true};
+    if (r.type==="despesa" || r.type==="receita"){ t.accountId = id; t.catId = r.catId||""; t.subId = ""; if (r.salary) t.salary = true; }
+    if (r.type==="credito"){ t.cardId = id; t.catId = r.catId||""; t.subId = ""; t.installments = r.parc ? r.parc.n : 1; if (r.parc){ t.amount = r2(r.amount * r.parc.n); t.note = `Parcelado em ${r.parc.n}x de ${fmt(r.amount)} (do extrato)`; } }
+    if (r.type==="transfer"){ if (r.raw<0){ t.accountId = id; t.toAccountId = r.other; } else { t.accountId = r.other; t.toAccountId = id; } }
+    if (r.type==="fatura"){ const c = cardById(r.other); t.accountId = id; t.cardId = r.other; t.invoiceKey = nearestInvoice(c, r.date); }
+    putTx(t); n++; if (t.date > last) last = t.date;
+    if (t.catId){ const k = descKey(r.desc); if (k) rules[k] = t.catId; }
+  });
+  const keys = Object.keys(rules); if (keys.length > 400) keys.slice(0, keys.length-400).forEach(k => delete rules[k]);
+  saveCfg(); XT = null;
+  toast(`${n} lançamento(s) importado(s)`);
+  UI.view = "lancamentos"; if (last) UI.month = mk(last); render(); window.scrollTo(0,0);
+}
+
 /* ============ importar lançamentos (planilha convertida) ============ */
 function readImportFile(file){
   const r = new FileReader();
@@ -2347,6 +2713,10 @@ document.addEventListener("click", e => {
     case "logout": closeModal(); cloudSignOut(); break;
     case "wipe": wipeStep1(); break;
     case "quick": applyQuick(+el.dataset.i); break;
+    case "xt-cancel": XT = null; render(); break;
+    case "xt-filter": XT.filter = el.dataset.f; render(); break;
+    case "xt-all": XT.rows.forEach(r => { if (r.type!=="ignorar") r.include = el.dataset.v==="1"; }); render(); break;
+    case "xt-import": xtImport(); break;
     case "retro": retroModal(el.dataset.k); break;
     case "retro-skip": CFG.retroSeen = el.dataset.k; saveCfg(); render(); break;
     case "rem-on": enableReminders(); break;
@@ -2410,6 +2780,7 @@ function maskMoney(el){
 }
 document.addEventListener("input", e => {
   const el = e.target;
+  if (el.dataset?.xr && (el.dataset.xf==="desc" || el.dataset.xf==="amount")){ if (el.dataset.xf==="amount") maskMoney(el); xtEdit(el); return; }
   if (el.matches?.('input[inputmode="decimal"]')) maskMoney(el);
   if (el.name==="last4") el.value = el.value.replace(/\D/g,"").slice(0,4);
   if (el.dataset?.filt){ UI.filt[el.dataset.filt] = el.value; const pos = el.selectionStart; render(); const n = document.querySelector(`[data-filt="${el.dataset.filt}"]`); if (n){ n.focus(); if (n.setSelectionRange && pos!=null) try{ n.setSelectionRange(pos,pos); }catch(_){} } return; }
@@ -2418,6 +2789,13 @@ document.addEventListener("input", e => {
 });
 document.addEventListener("change", e => {
   const el = e.target;
+  if (el.id==="xt-file" && el.files[0]){ const f = el.files[0]; el.value = ""; readStatement(f); return; }
+  if (el.dataset?.xr && !["desc","amount"].includes(el.dataset.xf)){ xtEdit(el); return; }
+  if (el.dataset?.xdest && XT){ XT.dest = el.value; xtDefaults(); render(); return; }
+  if (el.dataset?.xcol && XT?.csv){ const k = el.dataset.xcol, v = +el.value; XT.csv.cols[k] = v;
+    if (k==="amount" && v<0){ XT.csv.cols.credit = XT.csv.head.findIndex(h=>COLRX.credit.test(h)); XT.csv.cols.debit = XT.csv.head.findIndex(h=>COLRX.debit.test(h)); }
+    xtRebuildFromCSV(); render(); return; }
+  if (el.dataset?.xbulk && XT){ const c = el.value; if (!c) return; let k = 0; XT.rows.forEach(r => { if (r.include && (r.type==="despesa"||r.type==="credito") && !r.catId){ r.catId = c; k++; } }); toast(`Categoria aplicada a ${k} lançamento(s)`); render(); return; }
   if (el.dataset?.rem){ CFG.reminders = {...CFG.reminders, [el.dataset.rem]: el.checked}; saveCfg(); scheduleReminderSync(); render(); return; }
   if (el.id==="m-logo-file") handleLogoFile(el.files[0]);
   else if (el.id==="import-file" && el.files[0]) importBackup(el.files[0]);
@@ -2442,6 +2820,9 @@ document.addEventListener("pointerout", e => {
   const box = e.target.closest?.("[data-tilt]"); if (!box || box.contains(e.relatedTarget)) return;
   const card = box.querySelector(".wcard"); if (card) ["--rx","--ry","--mx","--my","--px"].forEach(p=>card.style.removeProperty(p));
 });
+document.addEventListener("dragover", e => { const dz = e.target.closest?.("#xt-drop"); if (!dz) return; e.preventDefault(); dz.classList.add("over"); });
+document.addEventListener("dragleave", e => { e.target.closest?.("#xt-drop")?.classList.remove("over"); });
+document.addEventListener("drop", e => { const dz = e.target.closest?.("#xt-drop"); if (!dz) return; e.preventDefault(); dz.classList.remove("over"); const f = e.dataTransfer?.files?.[0]; if (f) readStatement(f); });
 document.addEventListener("keydown", e => { if (e.key==="Escape" && MODAL) closeModal(); });
 window.addEventListener("hashchange", () => { readHash(); render(); });
 let lastW = window.innerWidth, rzT = null;
