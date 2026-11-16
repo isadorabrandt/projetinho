@@ -1603,7 +1603,7 @@ function vGeral(){
   const prevK = addM(mk(todayStr()),-1);
   const retroCard = (+todayStr().slice(8,10) <= 10 && CFG.retroSeen !== prevK && (txIn(prevK).length || spentIn(prevK)>0)) ? `<section class="card s12 retro-card"><div class="row" style="flex-wrap:wrap"><div class="grow" style="min-width:200px"><h2>Sua retrospectiva de ${MESES[+prevK.slice(5)-1]} está pronta</h2><div class="tiny muted">Quanto entrou, quanto guardou, onde mais gastou e a comparação com o mês anterior.</div></div><button class="btn primary" data-act="retro" data-k="${prevK}">Ver retrospectiva</button><button class="btn ghost sm" data-act="retro-skip" data-k="${prevK}">Agora não</button></div></section>` : "";
   const rem = key===mk(todayStr()) ? remindersCard() : "";
-  return `${tripBanner()}<div class="grid">${retroCard}${rem}${hero}${salCard}${alertCard}${forecastCard()}${strip}${accCard}${cardCard}${budCard}${dueCard}${goalCard}${patCard}</div>`;
+  return `${tripBanner()}<div class="grid">${retroCard}${rem}${hero}${salCard}${alertCard}${strip}${accCard}${cardCard}${budCard}${dueCard}${goalCard}${patCard}${forecastCard()}</div>`;
 }
 function wealthHistory(n){
   const end = UI.month > mk(todayStr()) ? mk(todayStr()) : UI.month, out=[];
