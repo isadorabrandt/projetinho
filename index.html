@@ -537,6 +537,21 @@ h1,h2,h3{color:var(--accent);font-weight:800}
   .xt-bulk{width:100%}
   .xt-bulk select{flex:1 1 100%}
 }
+.goal-accs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+.stack > .hint{font-size:12px;color:var(--muted)}
+.goal-acc{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer;min-width:0;transition:border-color .15s,background .15s}
+.goal-acc:hover{border-color:var(--accent)}
+.goal-acc input{position:absolute;opacity:0;pointer-events:none}
+.goal-acc:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.goal-acc:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.ga-txt{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.3}
+.ga-txt b{font-size:14px}
+.ga-val{display:flex;flex-direction:column;align-items:flex-end;line-height:1.3;white-space:nowrap}
+.ga-val b{font-size:13.5px}
+.ga-tick{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;flex:none;color:transparent;background:var(--surface)}
+.ga-tick svg{width:14px;height:14px}
+.goal-acc:has(input:checked) .ga-tick{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+@media (max-width:820px){.goal-accs{grid-template-columns:minmax(0,1fr)}}
 .imp-list{display:flex;flex-direction:column;border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
 .imp-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:12px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
 .imp-row:last-child{border-bottom:0}
@@ -2246,7 +2261,9 @@ function goalModal(g){
     <div class="field"><label for="m-gtarget">Valor da meta</label><input id="m-gtarget" name="target" inputmode="decimal" value="${fmtIn(g.target)}"></div></div>
     <div class="frow"><div class="field"><label for="m-gdl">Prazo (opcional)</label><input id="m-gdl" name="deadline" type="date" value="${esc(g.deadline||"")}"></div>
     <div class="field"><label for="m-gman">Valor guardado fora das contas</label><input id="m-gman" name="manual" inputmode="decimal" value="${fmtIn(g.manual||0)}"></div></div>
-    <div class="field"><span class="flabel">Contas que formam a meta</span>${CFG.accounts.map(a=>`<label class="check"><input type="checkbox" name="acc_${a.id}" ${(g.accountIds||[]).includes(a.id)?"checked":""}>${esc(a.name)} · ${fmt(balance(a)-committedOf(a,balance(a)))} livre</label>`).join("") || `<span class="hint">Cadastre contas primeiro.</span>`}<span class="hint">O progresso soma o saldo livre dessas contas. Valores comprometidos não contam.</span></div>`,
+    <div class="stack" style="gap:8px"><span class="flabel">Contas que formam a meta</span>
+      ${CFG.accounts.length ? `<div class="goal-accs">${CFG.accounts.map(a=>{ const b = balance(a), livre = b-committedOf(a,b); return `<label class="goal-acc"><input type="checkbox" name="acc_${a.id}" ${(g.accountIds||[]).includes(a.id)?"checked":""}>${logoHTML(a,34)}<span class="ga-txt"><b class="ellip">${esc(a.name)}</b><span class="tiny muted ellip">${ACC_TYPES[a.type]||""}</span></span><span class="ga-val"><b class="money">${fmt(livre)}</b><span class="tiny muted">livre</span></span><span class="ga-tick" aria-hidden="true">${ico("check")}</span></label>`; }).join("")}</div>` : `<span class="hint">Cadastre contas primeiro.</span>`}
+      <span class="hint">Toque para selecionar. O progresso soma o saldo livre dessas contas; valores comprometidos não contam.</span></div>`,
     del: isNew ? null : () => { CFG.goals = CFG.goals.filter(x=>x.id!==g.id); saveCfg(); toast("Meta excluída"); },
     onSubmit: () => { const v = fd(); if (!v.name.trim()) return mErr("Dê um nome para a meta.");
       const n = {...g, id:g.id||uid(), name:v.name.trim(), target:parseMoney(v.target), manual:parseMoney(v.manual), deadline:v.deadline||"", accountIds:CFG.accounts.filter(a=>v["acc_"+a.id]).map(a=>a.id)};
