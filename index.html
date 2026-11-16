@@ -552,6 +552,50 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 .ga-tick svg{width:14px;height:14px}
 .goal-acc:has(input:checked) .ga-tick{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 @media (max-width:820px){.goal-accs{grid-template-columns:minmax(0,1fr)}}
+.fc-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.fc-col{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer;color:var(--fg);min-width:0}
+.fc-col:hover{border-color:var(--accent)}
+.fc-m{font-weight:700;font-size:13px}
+.fc-bar{height:64px;width:22px;border-radius:8px;background:var(--surface-2);display:flex;align-items:flex-end;overflow:hidden}
+.fc-bar span{display:block;width:100%;border-radius:8px;background:var(--seg-free)}
+.fc-warn .fc-bar span{background:var(--warn)} .fc-bad .fc-bar span{background:var(--bad)}
+.fc-v{font-size:15px} .fc-bad .fc-v{color:var(--bad)}
+.fc-why{text-align:center;line-height:1.25;min-height:2.5em;font-size:11px}
+.fc-card .card-h{flex-wrap:wrap}
+.fc-card .card-h .actions .check{white-space:nowrap}
+.fc-lines{display:flex;flex-direction:column}
+.fc-line{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line)}
+.fc-line .grow{display:flex;flex-direction:column}
+.plan-prog{display:flex;flex-direction:column;gap:4px;margin-top:6px;max-width:420px}
+.plan-li{align-items:flex-start}
+.sec-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+.sec-title h2{font-size:20px}
+.trip-card.trip-on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.trip-top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.trip-top > div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.trip-kinds{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px 22px}
+.trip-kind{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;font-size:13px}
+.trip-kind .grow{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trip-kind .money{white-space:nowrap}
+.trip-kind .meter{grid-column:1/-1;height:6px}
+.trip-parts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.trip-box{display:flex;flex-direction:column;gap:10px;padding:12px;border:1.5px dashed var(--line);border-radius:14px}
+.trip-banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.link-list{display:flex;flex-direction:column;border:1.5px solid var(--line);border-radius:14px;max-height:340px;overflow-y:auto}
+.link-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+.link-row:last-child{border-bottom:0}
+.link-row .grow{display:flex;flex-direction:column;min-width:0}
+.link-row select{border:1.5px solid var(--line);background:var(--surface-2);border-radius:10px;padding:5px 8px;max-width:150px}
+.link-row input{width:18px;height:18px;accent-color:var(--accent);flex:none}
+@media (max-width:820px){
+  .fc-row{display:flex;overflow-x:auto;scrollbar-width:none;margin-inline:-4px;padding:2px 4px}
+  .fc-row::-webkit-scrollbar{display:none}
+  .fc-col{flex:0 0 112px}
+  .trip-top{grid-template-columns:minmax(0,1fr)}
+  .trip-parts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .link-row{flex-wrap:wrap}
+  .link-row select{max-width:none;flex:1 1 100%}
+}
 .imp-list{display:flex;flex-direction:column;border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
 .imp-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:12px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
 .imp-row:last-child{border-bottom:0}
@@ -797,7 +841,7 @@ function defaultConfig(income=0, day=5){
   };
 }
 function normalizeCfg(c){
-  c.income ||= {amount:0,day:5,accountId:""}; c.profile ||= {name:""}; c.reminders ||= {on:false, faturas:true, fixas:true, salario:true}; c.accounts ||= []; c.cards ||= []; c.goals ||= []; c.bills ||= [];
+  c.income ||= {amount:0,day:5,accountId:""}; c.profile ||= {name:""}; c.reminders ||= {on:false, faturas:true, fixas:true, salario:true}; c.accounts ||= []; c.cards ||= []; c.goals ||= []; c.bills ||= []; c.plans ||= []; c.trips ||= [];
   c.categories ||= []; c.budgetOverrides ||= {}; c.savingsTarget ??= 0;
   c.categories.forEach(k=>{k.subs ||= []; k.kind ||= "despesa";});
   [...c.accounts, ...c.cards].forEach(e => { if (PRESET_ISPB[e.bank]){ e.bankName = BANKS[e.bank].name; e.ispb = PRESET_ISPB[e.bank]; e.bank = "inst"; } });
@@ -1209,7 +1253,7 @@ function monthPlan(key){
   const meta = +CFG.savingsTarget||0, saved = savedIn(key);
   const economia = r2(Math.max(meta, saved));
   const gastos = spentIn(key);
-  const pend = sum(CFG.bills.filter(b=>b.active!==false && !billPaid(b,key)), b=>+b.amount||0);
+  const pend = r2(sum(CFG.bills.filter(b=>b.active!==false && !billPaid(b,key)), b=>+b.amount||0) + sum(planDue(key).filter(x=>!x.paid), x=>x.amount));
   const livre = r2(renda - economia - gastos - pend);
   const td = todayStr(); let daysLeft = null;
   if (key===mk(td)) daysLeft = daysIn(key) - +td.slice(8,10) + 1;
@@ -1377,6 +1421,8 @@ function reminderList(from=todayStr(), span=45){
   for (const k of keys){
     if (R.faturas!==false) CFG.cards.forEach(c => { const iv = invoiceOf(c,k); if (iv.total>0 && iv.remaining>0.004)
       out.push({id:`fat-${c.id}-${k}`, date:addDays(iv.dueDate,-1), due:iv.dueDate, title:`Fatura ${c.name} vence amanhã`, body:`${fmt(iv.remaining)} · vencimento ${dBR(iv.dueDate)}`, url:"./#cartoes", kind:"fatura"}); });
+    if (R.fixas!==false) planDue(k).filter(x=>!x.paid).forEach(x => { const a = accById(x.p.accountId);
+      out.push({id:`parc-${x.p.id}-${k}`, date:addDays(x.date,-1), due:x.date, title:`${x.p.name} (${x.k}/${x.p.n}) vence amanhã`, body:`${fmt(x.amount)}${a?` · pagar com ${a.name}`:""}`, url:"./#fixas", kind:"fixa"}); });
     if (R.fixas!==false) CFG.bills.filter(b=>b.active!==false && !billPaid(b,k)).forEach(b => { const due = dateIn(k,b.day); const a = accById(b.accountId);
       out.push({id:`fixa-${b.id}-${k}`, date:addDays(due,-1), due, title:`${b.name} vence amanhã`, body:`${fmt(b.amount)}${a?` · pagar com ${a.name}`:""}`, url:"./#fixas", kind:"fixa"}); });
     if (R.salario!==false && +CFG.income.amount>0 && !salaryTx(k).length){ const d = dateIn(k, CFG.income.day); const falta = Math.max(0, r2((+CFG.savingsTarget||0) - savedIn(k)));
@@ -1442,7 +1488,7 @@ function remindersCard(){
 let QUICK = [];
 function quickPicks(){
   const since = addM(mk(todayStr()), -3);
-  const list = allTx().filter(t => (t.type==="despesa"||t.type==="credito") && t.catId && !t.billId && mk(t.date)>=since && catById(t.catId));
+  const list = allTx().filter(t => (t.type==="despesa"||t.type==="credito") && t.catId && !t.billId && !t.planId && !t.tripId && mk(t.date)>=since && catById(t.catId));
   const by = {};
   list.forEach(t => { const g = by[t.catId] ||= {n:0, last:null}; g.n++; if (!g.last || t.date>g.last.date || (t.date===g.last.date && (t.createdAt||0)>(g.last.createdAt||0))) g.last = t; });
   return Object.entries(by).map(([id,g]) => ({cat:catById(id), n:g.n, t:g.last}))
@@ -1535,6 +1581,7 @@ function vGeral(){
   const due = [];
   CFG.cards.forEach(c => { const inv = invoiceOf(c,key); if (inv.total>0) due.push({date:inv.dueDate, name:"Fatura "+c.name, amount:inv.remaining||inv.total, paid:inv.remaining<=0.004, act:`data-act="pay-invoice" data-id="${c.id}" data-k="${key}"`, ent:c}); });
   CFG.bills.filter(b=>b.active!==false).forEach(b => due.push({date:dateIn(key,b.day), name:b.name, amount:+b.amount||0, paid:billPaid(b,key), act:`data-act="pay-bill" data-id="${b.id}"`, ent:accById(b.accountId)}));
+  planDue(key).forEach(x => due.push({date:x.date, name:`${x.p.name} · ${x.k}/${x.p.n}`, amount:x.amount, paid:x.paid, act:`data-act="pay-plan" data-id="${x.p.id}"`, ent:accById(x.p.accountId)}));
   due.sort((a,b)=>a.date<b.date?-1:1);
   const dueRows = due.map(d => `<div class="li">${logoHTML(d.ent||{bank:"outro",name:d.name},30)}<div class="grow"><div class="ellip" style="font-weight:600">${esc(d.name)}</div><div class="tiny muted">vence ${dBR(d.date)}</div></div><div class="amt">${fmt(d.amount)}</div>${d.paid?`<span class="chip good">Pago</span>`:`<button class="btn sm" ${d.act}>Pagar</button>`}</div>`).join("");
   const dueCard = `<section class="card s5"><div class="card-h"><div><h2>Vencimentos de ${MESES[+key.slice(5)-1]}</h2><div class="sub">${due.filter(d=>d.paid).length} de ${due.length} pagos</div></div><div class="actions"><button class="btn sm ghost" data-act="nav" data-v="fixas">Contas fixas</button></div></div>${dueRows?`<div class="list">${dueRows}</div>`:`<div class="empty">Nada para pagar neste mês.</div>`}</section>`;
@@ -1556,7 +1603,7 @@ function vGeral(){
   const prevK = addM(mk(todayStr()),-1);
   const retroCard = (+todayStr().slice(8,10) <= 10 && CFG.retroSeen !== prevK && (txIn(prevK).length || spentIn(prevK)>0)) ? `<section class="card s12 retro-card"><div class="row" style="flex-wrap:wrap"><div class="grow" style="min-width:200px"><h2>Sua retrospectiva de ${MESES[+prevK.slice(5)-1]} está pronta</h2><div class="tiny muted">Quanto entrou, quanto guardou, onde mais gastou e a comparação com o mês anterior.</div></div><button class="btn primary" data-act="retro" data-k="${prevK}">Ver retrospectiva</button><button class="btn ghost sm" data-act="retro-skip" data-k="${prevK}">Agora não</button></div></section>` : "";
   const rem = key===mk(todayStr()) ? remindersCard() : "";
-  return `<div class="grid">${retroCard}${rem}${hero}${salCard}${alertCard}${strip}${accCard}${cardCard}${budCard}${dueCard}${goalCard}${patCard}</div>`;
+  return `${tripBanner()}<div class="grid">${retroCard}${rem}${hero}${salCard}${alertCard}${forecastCard()}${strip}${accCard}${cardCard}${budCard}${dueCard}${goalCard}${patCard}</div>`;
 }
 function wealthHistory(n){
   const end = UI.month > mk(todayStr()) ? mk(todayStr()) : UI.month, out=[];
@@ -1802,7 +1849,293 @@ function vFixas(){
     <section class="card s12"><div class="card-h"><div><h2>Contas fixas de ${MESES[+key.slice(5)-1]}</h2><div class="sub">Contas que se repetem todo mês. Entram no "Livre para gastar" e nos vencimentos.</div></div><div class="actions"><button class="btn sm primary" data-act="new-bill">${ico("plus")}Conta fixa</button></div></div>
       ${rows?`<div class="list">${rows}</div>`:`<div class="empty">Nenhuma conta fixa ainda.<span class="tiny">Ex.: celular, internet, academia, transporte.</span><button class="btn primary sm" data-act="new-bill">Adicionar conta fixa</button></div>`}
     </section>
+    ${plansSection(key)}
   </div>`;
+}
+
+/* ============ Parcelamentos fora do cartão (Pix, boleto, débito) ============ */
+const monthsBetween = (a,b) => (+b.slice(0,4)-+a.slice(0,4))*12 + (+b.slice(5,7)-+a.slice(5,7));
+const planById = id => (CFG.plans||[]).find(p=>p.id===id);
+function planIdx(p, key){ const k = monthsBetween(p.start, key) + 1; return (k>=1 && k<=p.n) ? k : 0; }
+function planLooksLike(p, t){ // lançamentos antigos (ex.: importados da planilha) que já são essa parcela
+  if (t.type!=="despesa" || t.planId || Math.abs(t.amount - p.amount) > 0.02) return false;
+  const a = normTxt(t.desc), b = normTxt(p.name); return a && b && (a.includes(b) || b.includes(a));
+}
+function planPaidTx(p, key){ const l = txIn(key); return l.find(t => t.planId===p.id) || l.find(t => planLooksLike(p,t)); }
+function planPaidIdx(p, k){ return k <= (+p.paidBefore||0) || !!planPaidTx(p, addM(p.start, k-1)); }
+function planStats(p){
+  let paid = 0; for (let k=1;k<=p.n;k++) if (planPaidIdx(p,k)) paid++;
+  const left = p.n - paid; return {paid, left, leftAmt:r2(left*p.amount), total:r2(p.n*p.amount), end:addM(p.start, p.n-1)};
+}
+function planDue(key){
+  return (CFG.plans||[]).filter(p => p.active!==false).map(p => { const k = planIdx(p,key); if (!k) return null;
+    return {p, k, date:dateIn(key,p.day), amount:+p.amount||0, paid:planPaidIdx(p,k)}; }).filter(Boolean);
+}
+const matchesAnyPlan = t => (CFG.plans||[]).some(p => planLooksLike(p,t));
+function planModal(p){
+  const isNew = !p, cur = mk(todayStr());
+  p = p ? clone(p) : {name:"", amount:0, n:10, start:cur, day:+todayStr().slice(8,10), accountId:CFG.income.accountId||CFG.accounts[0]?.id||"", catId:"", tripId:"", method:"pix", active:true, paidBefore:0};
+  const kNow = Math.max(1, Math.min(p.n, monthsBetween(p.start, cur)+1));
+  const catOpts = `<option value="">Sem categoria</option>` + CFG.categories.filter(c=>c.kind==="despesa").map(c=>`<option value="${c.id}" ${c.id===p.catId?"selected":""}>${esc(c.name)}</option>`).join("");
+  const trips = CFG.trips||[];
+  openModal({title:isNew?"Novo parcelamento":"Editar parcelamento", body:`
+    <p class="muted" style="margin:0">Para compras parceladas pagas por Pix, boleto ou débito, fora do cartão. Cadastre uma vez e o app cuida das parcelas.</p>
+    <div class="frow"><div class="field"><label for="m-pname">Nome</label><input id="m-pname" name="name" value="${esc(p.name)}" placeholder="Ex.: Airbnb Malta"></div>
+    <div class="field"><label for="m-pmethod">Forma</label><select id="m-pmethod" name="method">${[["pix","Pix"],["boleto","Boleto"],["debito","Débito automático"],["outro","Outro"]].map(([k,l])=>`<option value="${k}" ${p.method===k?"selected":""}>${l}</option>`).join("")}</select></div></div>
+    <div class="frow"><div class="field"><label for="m-pamt">Valor da parcela</label><input id="m-pamt" name="amount" inputmode="decimal" value="${p.amount?fmtIn(p.amount):""}" placeholder="0,00" data-live="1"></div>
+    <div class="field"><label for="m-pn">Total de parcelas</label><input id="m-pn" name="n" type="number" min="2" max="120" value="${p.n}" data-live="1"></div></div>
+    <div class="frow"><div class="field"><label for="m-pk">Qual parcela vence em ${MESES[+cur.slice(5)-1]}?</label><input id="m-pk" name="k" type="number" min="1" max="120" value="${kNow}" data-live="1"><span class="hint">As anteriores contam como pagas.</span></div>
+    <div class="field"><label for="m-pday">Dia do pagamento</label><input id="m-pday" name="day" type="number" min="1" max="31" value="${p.day}"></div></div>
+    <div class="frow">${accSelect("accountId", p.accountId, "Paga com a conta").replace('<div class="field">','<div class="field" style="min-width:0">')}<div class="field"><label for="m-pcat">Categoria</label><select id="m-pcat" name="catId">${catOpts}</select></div></div>
+    ${trips.length?`<div class="field"><label for="m-ptrip">Faz parte de uma viagem?</label><select id="m-ptrip" name="tripId"><option value="">Não</option>${trips.map(t=>`<option value="${t.id}" ${t.id===p.tripId?"selected":""}>${esc(t.name)}</option>`).join("")}</select></div>`:""}
+    <div id="plan-preview" class="banner info" style="margin:0"></div>
+    <label class="check"><input type="checkbox" name="active" ${p.active!==false?"checked":""}>Ativo</label>`,
+    del: isNew ? null : () => { CFG.plans = CFG.plans.filter(x=>x.id!==p.id); saveCfg(); toast("Parcelamento excluído"); },
+    onSubmit: () => { const v = fd(), amount = parseMoney(v.amount), n = Math.round(+v.n||0), k = Math.round(+v.k||1);
+      if (!v.name.trim()) return mErr("Dê um nome ao parcelamento.");
+      if (!(amount>0)) return mErr("Informe o valor da parcela.");
+      if (!(n>=2)) return mErr("Use pelo menos 2 parcelas.");
+      if (!(k>=1 && k<=n)) return mErr(`A parcela deste mês precisa estar entre 1 e ${n}.`);
+      const start = addM(cur, -(k-1));
+      const np = {...p, id:p.id||uid(), name:v.name.trim(), method:v.method, amount, n, start, paidBefore: isNew || start!==p.start ? k-1 : (+p.paidBefore||0), day:Math.max(1,Math.min(31,+v.day||1)), accountId:v.accountId, catId:v.catId, tripId:v.tripId||"", active:!!v.active};
+      CFG.plans ||= []; const i = CFG.plans.findIndex(x=>x.id===np.id); if (i>=0) CFG.plans[i]=np; else CFG.plans.push(np);
+      saveCfg(); closeModal(); toast("Parcelamento salvo"); render(); }});
+  refreshPlanPreview();
+}
+function refreshPlanPreview(){
+  const f = document.getElementById("mform"), box = document.getElementById("plan-preview"); if (!f || !box) return;
+  const amt = parseMoney(f.amount.value), n = Math.round(+f.n.value||0), k = Math.round(+f.k.value||1);
+  if (!(amt>0) || !(n>=2) || !(k>=1 && k<=n)){ box.innerHTML = `<span>Preencha valor, total e a parcela deste mês.</span>`; return; }
+  const end = addM(mk(todayStr()), n-k);
+  box.innerHTML = `<span>${n}x de ${fmt(amt)} = <b>${fmt(amt*n)}</b> · desta em diante: ${n-k+1} (${fmt(amt*(n-k+1))}) · última em ${mShort(end)}</span>`;
+}
+function payPlan(p, key){
+  const k = planIdx(p, key) || 1;
+  txModal(null, {type:"despesa", accountId:p.accountId||CFG.income.accountId});
+  const f = document.getElementById("mform"); if (!f) return;
+  f.amount.value = fmtIn(p.amount); f.desc.value = p.name; f.note.value = `Parcela ${k}/${p.n}`;
+  const d = dateIn(key, p.day); f.date.value = key===mk(todayStr()) && d > todayStr() ? todayStr() : d;
+  if (p.catId) f.cat_despesa.value = p.catId+"|";
+  const orig = MODAL.onSubmit;
+  MODAL.onSubmit = () => { const before = new Set(allTx().map(t=>t.id)); orig(); const n = allTx().find(t=>!before.has(t.id)); if (n){ n.planId = p.id; if (p.tripId){ n.tripId = p.tripId; n.tripKind ||= guessTripKind(p.name); } saveMonth(mk(n.date)); render(); } };
+}
+function plansSection(key){
+  const list = (CFG.plans||[]).slice().sort((a,b)=>(a.active===false)-(b.active===false) || a.day-b.day);
+  const td = todayStr(), cur = mk(td);
+  const monthTotal = sum(planDue(key), x=>x.amount), leftAll = sum(list.filter(p=>p.active!==false), p=>planStats(p).leftAmt);
+  const rows = list.map(p => {
+    const st = planStats(p), k = planIdx(p,key), a = accById(p.accountId), c = catById(p.catId), trip = (CFG.trips||[]).find(t=>t.id===p.tripId);
+    let chip = "", pay = "";
+    if (p.active===false) chip = `<span class="chip">Pausado</span>`;
+    else if (!k) chip = monthsBetween(p.start,key) < 0 ? `<span class="chip">Começa em ${mShort(p.start)}</span>` : `<span class="chip good">Quitado</span>`;
+    else { const tx = planPaidTx(p,key), d = dateIn(key,p.day);
+      if (planPaidIdx(p,k)) chip = `<span class="chip good">${k}/${p.n} paga${tx?` em ${dBR(tx.date)}`:""}</span>`;
+      else { chip = (key<cur || (key===cur && d<td)) ? `<span class="chip bad">${k}/${p.n} atrasada</span>` : `<span class="chip">${k}/${p.n} vence ${dBR(d)}</span>`; pay = `<button class="btn sm primary" data-act="pay-plan" data-id="${p.id}">Pagar</button>`; } }
+    return `<div class="li plan-li">${logoHTML(a||{bank:"outro",name:p.name},34)}
+      <div class="grow"><div class="ellip" style="font-weight:600">${esc(p.name)}${trip?` <span class="chip acc">${esc(trip.name)}</span>`:""}</div>
+        <div class="tiny muted ellip">${p.n}x de ${fmt(p.amount)} · todo dia ${p.day}${a?` · ${esc(a.name)}`:""}${c?` · ${esc(c.name)}`:""}</div>
+        <div class="plan-prog"><div class="meter good"><span style="width:${st.paid/p.n*100}%"></span></div><span class="tiny muted">${st.paid} de ${p.n} pagas · faltam <b>${fmt(st.leftAmt)}</b>${st.left?` · até ${mShort(st.end)}`:""}</span></div></div>
+      ${chip}<div class="row" style="gap:6px">${pay}<button class="icon-btn" data-act="edit-plan" data-id="${p.id}" aria-label="Editar ${esc(p.name)}">${ico("edit")}</button></div></div>`; }).join("");
+  return `<section class="card s12"><div class="card-h"><div><h2>Parcelamentos fora do cartão</h2><div class="sub">${list.length ? `${fmt(monthTotal)} em ${MESES[+key.slice(5)-1]} · ${fmt(leftAll)} ainda a pagar no total` : "Compras parceladas no Pix, boleto ou débito"}</div></div><div class="actions"><button class="btn sm primary" data-act="new-plan">${ico("plus")}Parcelamento</button></div></div>
+    ${rows?`<div class="list">${rows}</div>`:`<div class="empty">Nenhum parcelamento.<span class="tiny">Ex.: Airbnb em 10x no Pix, curso no boleto.</span><button class="btn primary sm" data-act="new-plan">Adicionar parcelamento</button></div>`}</section>`;
+}
+
+/* ============ Previsão dos próximos meses ============ */
+function dailySpend(k, withCard){
+  return sum(txIn(k).filter(t => !t.tripId && ((t.type==="despesa" && !t.billId && !t.planId && !matchesAnyPlan(t)) || (withCard && t.type==="credito" && (+t.installments||1)===1))), t => t.type==="credito" ? creditTotal(t) : t.amount);
+}
+function avgDaily(){
+  const cur = mk(todayStr()); let s = 0, n = 0;
+  for (let i=1;i<=3;i++){ const k = addM(cur,-i); if (txIn(k).some(t=>t.type==="despesa"||t.type==="credito")){ s += dailySpend(k, true); n++; } }
+  return n ? r2(s/n) : 0;
+}
+function forecastMonth(k, avg){
+  const cur = mk(todayStr()), isCur = k===cur;
+  const inc = isCur ? r2(incomeIn(k) + (salaryTx(k).length ? 0 : (+CFG.income.amount||0))) : (+CFG.income.amount||0);
+  const invs = CFG.cards.map(c => ({c, v:invoiceOf(c,k).total})).filter(x=>x.v>0);
+  const fat = sum(invs, x=>x.v);
+  const fixas = sum(CFG.bills.filter(b=>b.active!==false), b=>+b.amount||0);
+  const pl = planDue(k), parc = sum(pl, x=>x.amount);
+  const reserva = +CFG.savingsTarget||0;
+  const useAvg = CFG.forecastDaily !== false;
+  const dia = isCur ? dailySpend(k, false) : (useAvg ? avg : 0);
+  const sobra = r2(inc - fat - fixas - parc - reserva - dia);
+  const ratio = inc>0 ? sobra/inc : (sobra<0?-1:0);
+  const level = sobra < 0 ? "bad" : ratio < 0.1 ? "warn" : "good";
+  return {k, isCur, inc, fat, invs, fixas, parc, pl, reserva, dia, sobra, level};
+}
+function forecastCard(){
+  const cur = mk(todayStr()), avg = avgDaily();
+  const F = Array.from({length:6}, (_,i) => forecastMonth(addM(cur,i), avg));
+  const maxAbs = Math.max(...F.map(f=>Math.abs(f.sobra)), 1);
+  const label = {good:"Folga", warn:"Apertado", bad:"No vermelho"};
+  const cols = F.map(f => {
+    const big = [["Fatura",f.fat],["Parcelamentos",f.parc],["Contas fixas",f.fixas]].sort((a,b)=>b[1]-a[1])[0];
+    return `<button class="fc-col fc-${f.level}" data-act="forecast" data-k="${f.k}" aria-label="Detalhes de ${mLabel(f.k)}">
+      <span class="fc-m">${f.isCur?"Este mês":(m=>m[0].toUpperCase()+m.slice(1))(MES3[+f.k.slice(5)-1])+(f.k.slice(0,4)!==cur.slice(0,4)?"/"+f.k.slice(2,4):"")}</span>
+      <span class="fc-bar"><span style="height:${Math.max(4, Math.abs(f.sobra)/maxAbs*100)}%"></span></span>
+      <b class="money fc-v">${fmt0(f.sobra)}</b>
+      <span class="chip ${f.level}">${label[f.level]}</span>
+      <span class="tiny muted fc-why">${big[1]>0?`${big[0]} ${fmt0(big[1])}`:"&nbsp;"}</span></button>`; }).join("");
+  const bad = F.filter(f=>f.level!=="good" && !f.isCur);
+  return `<section class="card s12 fc-card"><div class="card-h"><div><h2>Previsão dos próximos meses</h2><div class="sub">Quanto deve sobrar depois de faturas, contas fixas, parcelas, reserva${CFG.forecastDaily!==false?` e gastos do dia a dia (média ${fmt(avg)})`:""}</div></div>
+    <div class="actions"><label class="check tiny"><input type="checkbox" data-fcdaily="1" ${CFG.forecastDaily!==false?"checked":""}>Incluir média do dia a dia</label></div></div>
+    ${bad.length?`<div class="banner ${bad.some(f=>f.level==="bad")?"bad":""}" style="margin:0"><span>${bad.map(f=>`<b>${MESES[+f.k.slice(5)-1]}</b>`).join(", ")} ${bad.length===1?"pode ficar":"podem ficar"} ${bad.some(f=>f.level==="bad")?"no vermelho":"apertado"}. Toque no mês para ver o que pesa.</span></div>`:""}
+    <div class="fc-row">${cols}</div></section>`;
+}
+function forecastModal(k){
+  const f = forecastMonth(k, avgDaily()), line = (l, v, sub="", sign="−") => `<div class="fc-line"><span class="grow">${l}${sub?`<span class="tiny muted">${sub}</span>`:""}</span><b class="money">${sign}${fmt(v).replace("−","")}</b></div>`;
+  openModal({title:`Previsão de ${mLabel(k).toLowerCase()}`, body:`
+    <div class="retro-hero"><span class="eyebrow">Deve sobrar</span><div class="big money ${f.sobra<0?"neg":""}">${fmt(f.sobra)}</div></div>
+    <div class="fc-lines">
+      ${line("Salário", f.inc, f.isCur && salaryTx(k).length ? "já recebido" : "previsto", "+")}
+      ${f.invs.map(x=>line(`Fatura ${esc(x.c.name)}`, x.v, `vence ${dBR(invoiceOf(x.c,k).dueDate)}`)).join("") || line("Faturas de cartão", 0, "nenhuma com vencimento no mês")}
+      ${f.pl.map(x=>line(esc(x.p.name), x.amount, `parcela ${x.k}/${x.p.n}${x.paid?" · paga":""}`)).join("")}
+      ${CFG.bills.filter(b=>b.active!==false).map(b=>line(esc(b.name), +b.amount||0, `conta fixa · dia ${b.day}`)).join("")}
+      ${f.reserva?line("Reserva do mês", f.reserva, "sua meta de economia"):""}
+      ${f.isCur ? line("Gastos do dia a dia", f.dia, "já gastos neste mês (fora do cartão)") : (CFG.forecastDaily!==false ? line("Gastos do dia a dia", f.dia, "média dos últimos 3 meses") : "")}
+    </div>
+    <p class="tiny muted" style="margin:0">As faturas incluem as parcelas que já estão lançadas. Compras novas no cartão entram pela média do dia a dia.</p>`});
+}
+
+/* ============ Modo viagem ============ */
+const TRIP_KINDS = [["passagem","Passagem"],["hospedagem","Hospedagem"],["passeios","Passeios"],["alimentacao","Alimentação"],["transporte","Transporte local"],["compras","Compras"],["cambio","Câmbio / dinheiro"],["outros","Outros"]];
+const CUR = {EUR:"€", USD:"US$", GBP:"£", ARS:"AR$", CLP:"CLP$", CHF:"CHF"};
+const tripById = id => (CFG.trips||[]).find(t=>t.id===id);
+const activeTrip = () => (CFG.trips||[]).find(t => t.on) || null;
+function guessTripKind(s){
+  const n = normTxt(s);
+  if (/passag|voo|aere|aereo|latam|\bgol\b|azul|ryanair|easyjet|\btap\b|ita airways|assento|bagagem|decolar|skyscanner/.test(n)) return "passagem";
+  if (/airbnb|hotel|hostel|booking|pousada|hosped|apartamento/.test(n)) return "hospedagem";
+  if (/euro|dolar|cambio|moeda|wise|dinheiro|saque|travel money/.test(n)) return "cambio";
+  if (/passeio|ingresso|museu|tour|excurs|coliseu|vaticano|ticket/.test(n)) return "passeios";
+  if (/restaur|cafe|mercado|aliment|pizza|gelato|lanche|jantar|almoco/.test(n)) return "alimentacao";
+  if (/trem|train|trenitalia|italo|uber|onibus|metro|transfer|carro|taxi|bus/.test(n)) return "transporte";
+  if (/loja|compra|souvenir|roupa|presente/.test(n)) return "compras";
+  return "outros";
+}
+function tripSpent(trip){
+  const by = Object.fromEntries(TRIP_KINDS.map(([k])=>[k,0])); let total = 0;
+  const plans = (CFG.plans||[]).filter(p=>p.tripId===trip.id);
+  allTx().forEach(t => { if (t.tripId!==trip.id) return; if (t.planId && plans.some(p=>p.id===t.planId)) return; if (plans.some(p=>planLooksLike(p,t))) return;
+    const v = t.type==="credito" ? creditTotal(t) : (t.type==="despesa" ? t.amount : 0); if (!v) return; by[t.tripKind||"outros"] = (by[t.tripKind||"outros"]||0) + v; total += v; });
+  plans.forEach(p => { const v = r2(p.n*p.amount), k = guessTripKind(p.name); by[k] += v; total += v; });
+  Object.keys(by).forEach(k=>by[k]=r2(by[k])); return {by, total:r2(total)};
+}
+function tripCard(trip){
+  const S = tripSpent(trip), plan = trip.parts||{}, budget = r2(Object.values(plan).reduce((a,b)=>a+(+b||0),0));
+  const td = todayStr(), days = Math.round((new Date(trip.start) - new Date(td))/864e5);
+  const goal = CFG.goals.find(g=>g.id===trip.goalId), saved = goal ? goalProgress(goal) : 0;
+  const falta = Math.max(0, r2(budget - S.total - saved));
+  const months = Math.max(1, monthsBetween(mk(td), mk(trip.start)));
+  const pct = budget>0 ? Math.min(1, S.total/budget) : 0;
+  const when = days > 0 ? `faltam ${days} dias` : (td <= (trip.end||trip.start) ? "acontecendo agora" : "já aconteceu");
+  const sym = CUR[trip.cur]||trip.cur;
+  const kinds = TRIP_KINDS.filter(([k]) => (+plan[k]||0) > 0 || S.by[k] > 0).map(([k,l]) => { const p = +plan[k]||0, s = S.by[k]||0, r = p>0 ? s/p : (s>0?1.2:0);
+    return `<div class="trip-kind"><span class="grow">${l}</span><span class="money tiny ${s>p&&p>0?"neg":""}">${fmt(s)} <span class="muted">/ ${fmt(p)}</span></span><div class="meter cat ${r>1?"over":""}" style="--cc:var(--c${(TRIP_KINDS.findIndex(x=>x[0]===k)%8)+1})"><span style="width:${Math.min(100,r*100)}%"></span></div></div>`; }).join("");
+  return `<section class="card s12 trip-card ${trip.on?"trip-on":""}">
+    <div class="card-h"><div><h2>✈︎ ${esc(trip.name)}</h2><div class="sub">${dBR(trip.start)}/${trip.start.slice(0,4)}${trip.end?` a ${dBR(trip.end)}/${trip.end.slice(0,4)}`:""} · ${when}</div></div>
+      <div class="actions"><button class="btn sm ${trip.on?"primary":""}" data-act="trip-on" data-id="${trip.id}">${trip.on?"Modo viagem ligado":"Ligar modo viagem"}</button><button class="icon-btn" data-act="edit-trip" data-id="${trip.id}" aria-label="Editar viagem">${ico("edit")}</button></div></div>
+    <div class="trip-top">
+      <div><span class="eyebrow">Gasto e comprometido</span><div class="mid money">${fmt(S.total)}</div><span class="tiny muted">de ${fmt(budget)} planejados</span></div>
+      <div><span class="eyebrow">Guardado para a viagem</span><div class="mid money">${goal?fmt(saved):"—"}</div><span class="tiny muted">${goal?esc(goal.name):"sem meta vinculada"}</span></div>
+      <div><span class="eyebrow">Falta guardar</span><div class="mid money ${falta>0?"":"pos"}">${fmt(falta)}</div><span class="tiny muted">${falta>0 && days>0 ? `≈ ${fmt(falta/months)} por mês até ${mShort(mk(trip.start))}` : falta>0 ? "" : "orçamento coberto"}</span></div>
+    </div>
+    <div class="meter cat" style="--cc:var(--accent);height:10px"><span style="width:${pct*100}%"></span></div>
+    <div class="trip-kinds">${kinds || `<div class="tiny muted">Defina o orçamento por tipo em Editar.</div>`}</div>
+    <div class="row" style="flex-wrap:wrap;gap:8px"><span class="chip">1 ${sym} = ${fmt(trip.rate||0)}</span><span class="chip">IOF no cartão ${fmtIn(trip.iof||0)}%</span><div class="spacer"></div>
+      <button class="btn sm" data-act="trip-link" data-id="${trip.id}">Vincular lançamentos</button><button class="btn sm primary" data-act="trip-add" data-id="${trip.id}">${ico("plus")}Gasto da viagem</button></div>
+  </section>`;
+}
+function tripModal(trip){
+  const isNew = !trip;
+  trip = trip ? clone(trip) : {name:"", start:addM(mk(todayStr()),3)+"-01", end:"", cur:"EUR", rate:6, iof:3.5, parts:{}, goalId:"", on:false};
+  const parts = TRIP_KINDS.map(([k,l]) => `<div class="field"><label for="m-tp-${k}">${l}</label><input id="m-tp-${k}" name="p_${k}" inputmode="decimal" value="${fmtIn(trip.parts?.[k]||0)}" data-live="1"></div>`).join("");
+  openModal({title:isNew?"Nova viagem":"Editar viagem", wide:true, body:`
+    <div class="frow"><div class="field"><label for="m-tname">Destino / nome</label><input id="m-tname" name="name" value="${esc(trip.name)}" placeholder="Ex.: Itália"></div>
+      <div class="field"><label for="m-tstart">Ida</label><input id="m-tstart" name="start" type="date" value="${esc(trip.start)}"></div>
+      <div class="field"><label for="m-tend">Volta</label><input id="m-tend" name="end" type="date" value="${esc(trip.end||"")}"></div></div>
+    <div class="frow"><div class="field"><label for="m-tcur">Moeda</label><select id="m-tcur" name="cur">${Object.entries(CUR).map(([k,s])=>`<option value="${k}" ${trip.cur===k?"selected":""}>${s} ${k}</option>`).join("")}</select></div>
+      <div class="field"><label for="m-trate">Cotação (R$ por 1 unidade)</label><input id="m-trate" name="rate" inputmode="decimal" value="${fmtIn(trip.rate||0)}"><span class="hint">Use a cotação do seu cartão ou casa de câmbio.</span></div>
+      <div class="field"><label for="m-tiof">IOF no cartão (%)</label><input id="m-tiof" name="iof" inputmode="decimal" value="${fmtIn(trip.iof??3.5)}"><span class="hint">Somado às compras no cartão em moeda estrangeira.</span></div></div>
+    <div class="flabel">Orçamento por tipo (em reais)</div>
+    <div class="trip-parts">${parts}</div>
+    <div id="trip-total" class="banner info" style="margin:0"></div>
+    ${isNew?`<label class="check"><input type="checkbox" name="mkGoal" checked>Criar uma meta para guardar o dinheiro desta viagem</label>`:""}`,
+    del: isNew ? null : () => { CFG.trips = CFG.trips.filter(x=>x.id!==trip.id); (CFG.plans||[]).forEach(p=>{ if (p.tripId===trip.id) p.tripId=""; }); saveCfg(); toast("Viagem excluída"); },
+    onSubmit: () => { const v = fd(); if (!v.name.trim()) return mErr("Dê um nome à viagem."); if (!v.start) return mErr("Informe a data de ida.");
+      const parts = {}; TRIP_KINDS.forEach(([k]) => { const x = parseMoney(v["p_"+k]); if (x>0) parts[k] = x; });
+      const budget = r2(Object.values(parts).reduce((a,b)=>a+b,0));
+      const nt = {...trip, id:trip.id||uid(), name:v.name.trim(), start:v.start, end:v.end||"", cur:v.cur, rate:parseMoney(v.rate), iof:parseMoney(v.iof), parts};
+      if (isNew && v.mkGoal){ const g = {id:uid(), name:"Viagem "+nt.name, target:budget, accountIds:[], manual:0, deadline:nt.start}; CFG.goals.push(g); nt.goalId = g.id; }
+      else if (nt.goalId){ const g = CFG.goals.find(g=>g.id===nt.goalId); if (g){ g.target = budget; g.deadline = nt.start; } }
+      CFG.trips ||= []; const i = CFG.trips.findIndex(x=>x.id===nt.id); if (i>=0) CFG.trips[i]=nt; else CFG.trips.push(nt);
+      saveCfg(); closeModal(); toast("Viagem salva"); render(); }});
+  refreshTripTotal();
+}
+function refreshTripTotal(){
+  const f = document.getElementById("mform"), box = document.getElementById("trip-total"); if (!f || !box) return;
+  const t = r2(TRIP_KINDS.reduce((a,[k]) => a + (parseMoney(f["p_"+k]?.value)||0), 0));
+  box.innerHTML = `<span>Orçamento total: <b>${fmt(t)}</b></span>`;
+}
+function tripLinkModal(trip){
+  const since = addM(mk(todayStr()), -12);
+  const cands = allTx().filter(t => (t.type==="despesa"||t.type==="credito") && mk(t.date)>=since && (!t.tripId || t.tripId===trip.id) && !(t.planId && planById(t.planId)?.tripId===trip.id))
+    .map(t => ({t, viagem: /viag/.test(normTxt(catById(t.catId)?.name||"")) || t.tripId===trip.id}))
+    .sort((a,b) => (b.viagem-a.viagem) || (a.t.date<b.t.date?1:-1)).slice(0,120);
+  const plans = (CFG.plans||[]).filter(p => !p.tripId || p.tripId===trip.id);
+  const kindSel = (name, val) => `<select name="${name}">${TRIP_KINDS.map(([k,l])=>`<option value="${k}" ${k===val?"selected":""}>${l}</option>`).join("")}</select>`;
+  openModal({title:`Vincular à viagem ${trip.name}`, wide:true, submitLabel:"Salvar vínculos", body:`
+    <p class="muted" style="margin:0">Marque o que faz parte da viagem. Os da categoria Viagem já vêm marcados.</p>
+    ${plans.length?`<div class="flabel">Parcelamentos fora do cartão</div><div class="link-list">${plans.map(p=>`<label class="link-row"><input type="checkbox" name="pl_${p.id}" ${p.tripId===trip.id || (!p.tripId && (/viag/.test(normTxt(catById(p.catId)?.name||"")) || cands.some(c=>c.viagem && planLooksLike(p,c.t))))?"checked":""}><span class="grow"><b>${esc(p.name)}</b><span class="tiny muted">${p.n}x de ${fmt(p.amount)} · total ${fmt(p.n*p.amount)}</span></span></label>`).join("")}</div>`:""}
+    <div class="flabel">Lançamentos dos últimos 12 meses</div>
+    <div class="link-list">${cands.map(({t,viagem})=>`<div class="link-row"><input type="checkbox" name="tx_${t.id}" ${t.tripId===trip.id||(!t.tripId&&viagem)?"checked":""} aria-label="Vincular ${esc(t.desc)}"><span class="grow"><b class="ellip">${esc(t.desc||"Gasto")}</b><span class="tiny muted">${dBR(t.date)}/${t.date.slice(2,4)} · ${esc(catById(t.catId)?.name||"sem categoria")}${t.type==="credito"&&(+t.installments||1)>1?` · ${t.installments}x`:""}</span></span><b class="money tiny">${fmt(t.type==="credito"?creditTotal(t):t.amount)}</b>${kindSel("tk_"+t.id, t.tripKind||guessTripKind(t.desc||""))}</div>`).join("") || `<div class="tiny muted">Nenhum lançamento recente.</div>`}</div>`,
+    onSubmit: () => { const v = fd(), touched = new Set(); let n = 0;
+      cands.forEach(({t}) => { const on = !!v["tx_"+t.id];
+        if (on && (t.tripId!==trip.id || t.tripKind!==v["tk_"+t.id])){ t.tripId = trip.id; t.tripKind = v["tk_"+t.id]; touched.add(mk(t.date)); n++; }
+        else if (!on && t.tripId===trip.id){ delete t.tripId; delete t.tripKind; touched.add(mk(t.date)); } });
+      plans.forEach(p => { p.tripId = v["pl_"+p.id] ? trip.id : (p.tripId===trip.id ? "" : p.tripId); });
+      touched.forEach(saveMonth); saveCfg(); closeModal(); toast(`${n} lançamento(s) vinculado(s)`); render(); }});
+}
+function tripsSection(){
+  const trips = CFG.trips||[];
+  return `<div class="s12 sec-title"><h2>Viagens</h2><button class="btn sm primary" data-act="new-trip">${ico("plus")}Nova viagem</button></div>
+    ${trips.length ? trips.map(tripCard).join("") : `<section class="card s12"><div class="empty">Planeje uma viagem: orçamento por tipo, gastos em moeda estrangeira e quanto guardar por mês.<button class="btn primary sm" data-act="new-trip">Nova viagem</button></div></section>`}`;
+}
+function tripBanner(){
+  const t = activeTrip(); if (!t) return "";
+  return `<div class="banner info trip-banner" style="margin:0 0 12px"><span class="grow">✈︎ <b>Modo viagem: ${esc(t.name)}</b> · novos gastos já vêm marcados na viagem, em ${CUR[t.cur]||t.cur}</span><button class="btn sm" data-act="trip-on" data-id="${t.id}">Desligar</button></div>`;
+}
+function tripFields(t, isNew){
+  const trips = CFG.trips||[]; if (!trips.length) return "";
+  const act = activeTrip();
+  const tripId = t.tripId || (isNew && act ? act.id : "");
+  const trip = tripById(tripId);
+  const fx = t.fx || (isNew && act ? {cur:act.cur, amt:0, rate:act.rate, on:true} : null);
+  const fxOn = !!(fx && (fx.on || fx.amt));
+  const sym = CUR[(trip||act||{}).cur||"EUR"] || "€";
+  return `<div class="trip-box" data-types="despesa,credito" ${["despesa","credito"].includes(t.type)?"":"hidden"}>
+    <div class="frow"><div class="field"><label for="m-trip">Viagem</label><select id="m-trip" name="tripId" data-live="1"><option value="">Nenhuma</option>${trips.map(x=>`<option value="${x.id}" ${x.id===tripId?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>
+      <div class="field" id="trip-kind-wrap" ${tripId?"":"hidden"}><label for="m-tkind">Tipo de gasto</label><select id="m-tkind" name="tripKind" ${t.tripKind?"":'data-auto="1"'}>${TRIP_KINDS.map(([k,l])=>`<option value="${k}" ${k===(t.tripKind||guessTripKind(t.desc||""))?"selected":""}>${l}</option>`).join("")}</select></div></div>
+    <label class="check"><input type="checkbox" name="fxOn" data-live="1" ${fxOn?"checked":""}>Valor em moeda estrangeira</label>
+    <div class="frow" id="fx-wrap" ${fxOn?"":"hidden"}><div class="field"><label for="m-fxamt">Valor em <span id="fx-sym">${sym}</span></label><input id="m-fxamt" name="fxAmt" inputmode="decimal" value="${fx?.amt?fmtIn(fx.amt):""}" placeholder="0,00" data-live="1"></div>
+      <div class="field"><label for="m-fxrate">Cotação (R$ por 1 ${sym})</label><input id="m-fxrate" name="fxRate" inputmode="decimal" value="${fmtIn(fx?.rate||trip?.rate||act?.rate||0)}" data-live="1"></div></div>
+    <div id="fx-preview" class="tiny muted" ${fxOn?"":"hidden"}></div>
+  </div>`;
+}
+function refreshTripFields(){
+  const f = document.getElementById("mform"); if (!f || !f.tripId) return;
+  const trip = tripById(f.tripId.value), kw = document.getElementById("trip-kind-wrap");
+  if (kw) kw.hidden = !trip;
+  const on = !!f.fxOn?.checked, w = document.getElementById("fx-wrap"), pv = document.getElementById("fx-preview");
+  if (w) w.hidden = !on; if (pv) pv.hidden = !on;
+  const tt = trip || activeTrip(), sym = CUR[tt?.cur||"EUR"]||"€"; const s = document.getElementById("fx-sym"); if (s) s.textContent = sym;
+  if (!on || !pv) return;
+  const amt = parseMoney(f.fxAmt.value), rate = parseMoney(f.fxRate.value), isCard = f.type.value==="credito", iof = isCard ? (+(tt?.iof ?? 3.5)) : 0;
+  if (!(amt>0 && rate>0)){ pv.textContent = "Informe o valor e a cotação."; return; }
+  const brl = r2(amt*rate*(1+iof/100));
+  pv.innerHTML = `${sym} ${fmtIn(amt)} × ${fmt(rate)}${iof?` + IOF ${fmtIn(iof)}%`:""} = <b>${fmt(brl)}</b>`;
+  f.amount.value = fmtIn(brl);
 }
 
 /* ============ Orçamento ============ */
@@ -1856,7 +2189,7 @@ function vMetas(){
       <div class="stack"><div class="flabel">Contas que formam esta meta</div>${accs.length?accs.map(a=>`<div class="row">${logoHTML(a,26)}<span class="grow">${esc(a.name)}</span><span class="money">${fmt(balance(a)-committedOf(a,balance(a)))}</span></div>`).join(""):`<div class="tiny muted">Nenhuma conta vinculada. Edite a meta para escolher onde a reserva fica.</div>`}${+g.manual?`<div class="row tiny"><span class="grow muted">Valor fora das contas</span><span class="money">${fmt(g.manual)}</span></div>`:""}</div>
       ${accs.length?`<button class="btn primary" data-act="transfer" data-to="${accs[0].id}">Guardar dinheiro nesta meta</button>`:""}
     </section>`; }).join("");
-  return `<div class="grid">${cards}<button class="card s6 add-tile" data-act="new-goal">${ico("plus")} Nova meta</button></div>`;
+  return `<div class="grid">${cards}<button class="card s6 add-tile" data-act="new-goal">${ico("plus")} Nova meta</button>${tripsSection()}</div>`;
 }
 
 /* ============ Patrimônio ============ */
@@ -1967,7 +2300,7 @@ function catSelect(kind, sel){
 const TX_TYPES = {despesa:"Despesa", receita:"Receita", credito:"Cartão", transfer:"Transferência", fatura:"Pagar fatura"};
 function txModal(t, preset={}){
   const isNew = !t;
-  t = t ? clone(t) : {type:preset.type||"despesa", date:todayStr(), amount:0, desc:"", accountId:preset.accountId||CFG.income.accountId||CFG.accounts[0]?.id, cardId:preset.cardId||CFG.cards[0]?.id, installments:1, toAccountId:preset.toAccountId, catId:"", subId:""};
+  t = t ? clone(t) : {type:preset.type||"despesa", date:todayStr(), amount:0, desc:"", accountId:preset.accountId||CFG.income.accountId||CFG.accounts[0]?.id, cardId:preset.cardId||CFG.cards[0]?.id, installments:1, toAccountId:preset.toAccountId, catId:"", subId:"", tripId:preset.tripId||""};
   if (preset.from) t.accountId = preset.from;
   if (t.type==="ajuste"){ return adjustModal(accById(t.accountId), t); }
   if (!CFG.accounts.length){ openModal({title:"Cadastre uma conta primeiro", body:`<p style="margin:0">Para lançar movimentações, cadastre pelo menos uma conta.</p>`, extraFoot:`<button type="button" class="btn primary" data-act="new-acc">Adicionar conta</button>`}); return; }
@@ -1995,6 +2328,7 @@ function txModal(t, preset={}){
     <div ${show("receita")}>${catSelect("receita", t.type==="receita"?catSel:"")}<label class="check" style="margin-top:8px"><input type="checkbox" name="salary" ${t.salary?"checked":""}>É o meu salário do mês</label></div>
     <div class="frow" ${show("transfer")}>${accSelect("from", t.type==="transfer"?t.accountId:t.accountId, "De")}${accSelect("to", toDefault, "Para")}</div>
     <div ${show("fatura")}>${CFG.cards.length?`<div class="frow">${cardSelect("payCard", t.cardId).replace('name="payCard"','name="payCard" data-live="1"')}<div class="field"><label for="m-inv">Fatura</label><select id="m-inv" name="invoiceKey" data-cur="${invKey}"></select></div></div>${accSelect("payFrom", t.accountId, "Pagar com a conta")}`:`<div class="banner">Nenhum cartão cadastrado.</div>`}</div>
+    ${tripFields(t, isNew)}
     <div class="field"><label for="m-note">Observação</label><input id="m-note" name="note" value="${esc(t.note||"")}" placeholder="Opcional"></div>`;
   openModal({title: isNew ? "Novo lançamento" : "Editar lançamento", body, del: !isNew ? () => { delTx(t); toast("Lançamento excluído"); } : null,
     onSubmit: () => {
@@ -2006,6 +2340,11 @@ function txModal(t, preset={}){
       if (type==="credito"){ if (!v.cardId) return mErr("Cadastre um cartão primeiro."); n.cardId = v.cardId; n.installments = +v.installments||1; if (v.hasRate){ const rt = parseMoney(v.rate); if (!(rt>0)) return mErr("Informe a taxa de juros ou desmarque a opção."); n.rate = rt; } const [c,s] = (v.cat_despesa||"|").split("|"); n.catId=c||""; n.subId=s||""; }
       if (type==="transfer"){ if (v.from===v.to) return mErr("Escolha contas diferentes para origem e destino."); n.accountId = v.from; n.toAccountId = v.to; }
       if (type==="fatura"){ if (!v.payCard) return mErr("Cadastre um cartão primeiro."); n.cardId = v.payCard; n.invoiceKey = v.invoiceKey; n.accountId = v.payFrom; }
+      if (t.planId) n.planId = t.planId;
+      if (type==="despesa"||type==="credito"){
+        if (v.tripId){ n.tripId = v.tripId; n.tripKind = (!v.tripKind || (v.tripKind==="outros" && !t.tripKind)) ? guessTripKind(n.desc) : v.tripKind; }
+        if (v.fxOn && parseMoney(v.fxAmt)>0){ const tr = tripById(v.tripId) || activeTrip(); n.fx = {cur:tr?.cur||"EUR", amt:parseMoney(v.fxAmt), rate:parseMoney(v.fxRate), iof: type==="credito" ? +(tr?.iof ?? 3.5) : 0}; if (!n.note) n.note = `${CUR[n.fx.cur]||n.fx.cur} ${fmtIn(n.fx.amt)} a ${fmt(n.fx.rate)}${n.fx.iof?` + IOF ${fmtIn(n.fx.iof)}%`:""}`; }
+      } else if (t.tripId){ n.tripId = t.tripId; n.tripKind = t.tripKind; }
       if (!n.desc && (type==="despesa"||type==="credito")) n.desc = catById(n.catId)?.name || "Gasto";
       if (!n.desc && type==="receita") n.desc = n.salary ? "Salário" : (catById(n.catId)?.name || "Receita");
       putTx(n, t.date && !isNew ? t.date : null);
@@ -2015,6 +2354,7 @@ function txModal(t, preset={}){
 }
 function refreshTxModal(){
   const form = document.getElementById("mform"); if (!form) return;
+  refreshPlanPreview(); refreshTripTotal(); refreshTripFields();
   const type = form.type?.value;
   const pv = document.getElementById("parc-preview");
   if (pv && type==="credito"){
@@ -2735,6 +3075,15 @@ document.addEventListener("click", e => {
     case "logout": closeModal(); cloudSignOut(); break;
     case "wipe": wipeStep1(); break;
     case "quick": applyQuick(+el.dataset.i); break;
+    case "new-plan": planModal(); break;
+    case "edit-plan": planModal(planById(id)); break;
+    case "pay-plan": payPlan(planById(id), UI.month); break;
+    case "forecast": forecastModal(el.dataset.k); break;
+    case "new-trip": tripModal(); break;
+    case "edit-trip": tripModal(tripById(id)); break;
+    case "trip-on": { const tr = tripById(id); const on = !tr.on; (CFG.trips||[]).forEach(x => x.on = false); tr.on = on; saveCfg(); toast(on ? `Modo viagem ligado: ${tr.name}` : "Modo viagem desligado"); render(); break; }
+    case "trip-link": tripLinkModal(tripById(id)); break;
+    case "trip-add": { const tr = tripById(id); txModal(null, {type:"despesa", tripId:tr.id}); const f = document.getElementById("mform"); if (f?.fxOn && !tr.on){ f.fxOn.checked = true; f.fxRate.value = fmtIn(tr.rate||0); refreshTxModal(); } break; }
     case "xt-cancel": XT = null; render(); break;
     case "xt-close": openModal({title:"Cancelar importação?", submitLabel:"Sim, cancelar", cancelLabel:"Continuar revisando",
       body:`<p style="margin:0">Nenhum lançamento de <b>${esc(XT?.name||"este arquivo")}</b> será salvo e as edições feitas na revisão serão descartadas.</p>`,
@@ -2805,6 +3154,7 @@ function maskMoney(el){
 }
 document.addEventListener("input", e => {
   const el = e.target;
+  if (el.name==="desc" && el.closest("#mform")){ const tk = document.getElementById("m-tkind"); if (tk?.dataset.auto) tk.value = guessTripKind(el.value); }
   if (el.dataset?.xr && (el.dataset.xf==="desc" || el.dataset.xf==="amount")){ if (el.dataset.xf==="amount") maskMoney(el); xtEdit(el); return; }
   if (el.matches?.('input[inputmode="decimal"]')) maskMoney(el);
   if (el.name==="last4") el.value = el.value.replace(/\D/g,"").slice(0,4);
@@ -2814,6 +3164,8 @@ document.addEventListener("input", e => {
 });
 document.addEventListener("change", e => {
   const el = e.target;
+  if (el.id==="m-tkind") delete el.dataset.auto;
+  if (el.dataset?.fcdaily){ CFG.forecastDaily = el.checked; saveCfg(); render(); return; }
   if (el.id==="xt-file" && el.files[0]){ const f = el.files[0]; el.value = ""; readStatement(f); return; }
   if (el.dataset?.xr && !["desc","amount"].includes(el.dataset.xf)){ xtEdit(el); return; }
   if (el.dataset?.xdest && XT){ XT.dest = el.value; xtDefaults(); render(); return; }
