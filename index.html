@@ -513,12 +513,17 @@ h1,h2,h3{color:var(--accent);font-weight:800}
 .xt-bar{position:sticky;bottom:12px;z-index:5;display:flex;gap:12px;align-items:center;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:12px 16px;box-shadow:var(--shadow);flex-wrap:wrap}
 .xt-bar .grow{display:flex;flex-direction:column;min-width:180px}
 .xt-cols{font-size:13px}
+.xt-x{flex:none}
+.xt-cancel-btn{flex:none}
 .xt-head h2{font-size:17px;word-break:break-word}
 .xt-cols summary{cursor:pointer;font-weight:600}
 .xt-cols .frow{margin-top:10px}
 .xt-cols select{border:1.5px solid var(--line);background:var(--surface-2);border-radius:10px;padding:7px 9px;width:100%}
 @media (max-width:820px){
   .xt-how{grid-template-columns:minmax(0,1fr)}
+  .xt-head{position:relative}
+  .xt-head .xt-x{position:absolute;top:12px;right:12px}
+  .xt-head .row > .grow{padding-right:46px}
   .xt-row{grid-template-columns:24px minmax(0,1fr) minmax(0,1fr);grid-template-areas:"ck desc desc" "ck date amt" "ck type extra";gap:8px}
   .xt-check{grid-area:ck}.xt-desc{grid-area:desc}.xt-date{grid-area:date}.xt-amt{grid-area:amt}.xt-type{grid-area:type}.xt-extra{grid-area:extra}
   .xt-bar{bottom:calc(84px + env(safe-area-inset-bottom,0px));padding:10px 12px;gap:10px;flex-wrap:nowrap;border-radius:14px}
@@ -752,8 +757,8 @@ let MONTHS = {};           // "AAAA-MM" -> [lançamentos]
 const STORE = {mode:"loading", db:null, note:"", writes:{}, dlr:null, sb:null, user:null, sync:"ok", dirty:{cfg:false, months:new Set()}};
 const UI = {view:"geral", month:mk(todayStr()), cardId:null, walletOpen:false, filt:{type:"",cat:"",src:"",q:""}};
 const LS_KEY = "caixa-pessoal-v1";
-const VIEWS = {geral:"Visão geral", lancamentos:"Lançamentos", contas:"Contas", cartoes:"Cartões", fixas:"Contas fixas", orcamento:"Orçamento", metas:"Metas", patrimonio:"Patrimônio", ajustes:"Ajustes"};
-const VIEW_ICONS = {geral:"home",lancamentos:"list",contas:"bank",cartoes:"card",fixas:"repeat",orcamento:"pie",metas:"target",patrimonio:"chart",ajustes:"gear"};
+const VIEWS = {geral:"Visão geral", lancamentos:"Lançamentos", extrato:"Importar extrato", contas:"Contas", cartoes:"Cartões", fixas:"Contas fixas", orcamento:"Orçamento", metas:"Metas", patrimonio:"Patrimônio", ajustes:"Ajustes"};
+const VIEW_ICONS = {geral:"home",lancamentos:"list",extrato:"upload",contas:"bank",cartoes:"card",fixas:"repeat",orcamento:"pie",metas:"target",patrimonio:"chart",ajustes:"gear"};
 
 function defaultConfig(income=0, day=5){
   const c = (name,color,budget,subs,kind="despesa") => ({id:uid(),name,color,budget,kind,subs:subs.map(s=>({id:uid(),name:s}))});
@@ -1275,7 +1280,7 @@ function greeting(){
   return `<div class="greet"><h1>${oi}, ${esc(nome)}</h1><span class="muted">${hoje}</span></div>`;
 }
 function moreSheet(){
-  const items = ["orcamento","contas","fixas","metas","patrimonio","ajustes"].map(v => `<button class="more-item" data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}>${ico(VIEW_ICONS[v])}<span>${VIEWS[v]}</span></button>`).join("") + `<button class="more-item" data-act="nav" data-v="extrato" ${UI.view==="extrato"?'aria-current="page"':""}>${ico("upload")}<span>Importar extrato</span></button>`;
+  const items = ["extrato","orcamento","contas","fixas","metas","patrimonio","ajustes"].map(v => `<button class="more-item" data-act="nav" data-v="${v}" ${UI.view===v?'aria-current="page"':""}>${ico(VIEW_ICONS[v])}<span>${VIEWS[v]}</span></button>`).join("");
   openModal({title:"Mais", body:`<div class="more-grid">${items}</div>
     <div class="flabel">Tema</div><div class="skin-row">${Object.entries(SKINS).map(([k,v])=>`<button data-act="skin" data-m="${k}" aria-pressed="${currentSkin()===k}">${v.label}</button>`).join("")}</div>
     ${STORE.mode==="cloud"?`<button class="btn" data-act="logout">${ico("logout")}Sair da conta</button>`:""}`});
@@ -1889,7 +1894,6 @@ function vAjustes(){
         <div><button class="btn primary" type="submit">Salvar</button></div>
       </form>
     </section>
-    <section class="card s12 xt-entry"><div class="row" style="flex-wrap:wrap;gap:14px"><span class="dz-icon">${ico("upload")}</span><div class="grow" style="min-width:220px"><h2>Importar extrato</h2><div class="tiny muted">Suba o arquivo OFX ou CSV do banco e revise os lançamentos antes de salvar: descrição, valor, data, tipo e categoria.</div></div><button class="btn primary" data-act="nav" data-v="extrato">Importar extrato</button></div></section>
     ${remindersSettings()}
     <section class="card s6"><div class="card-h"><div><h2>Aparência</h2><div class="sub">Escolha o tema do app</div></div></div>
       <div class="skin-pick">${Object.entries(SKINS).map(([k,v])=>`<button class="skin-opt" data-act="skin" data-m="${k}" aria-pressed="${currentSkin()===k}"><span class="skin-sw">${v.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</span>${v.label}</button>`).join("")}</div>
@@ -1923,13 +1927,13 @@ function onboarding(){
 
 /* ============ modais ============ */
 let MODAL = null;
-function openModal({title, body, submitLabel="Salvar", onSubmit, del, wide, extraFoot=""}){
+function openModal({title, body, submitLabel="Salvar", onSubmit, del, wide, extraFoot="", cancelLabel=""}){
   MODAL = {onSubmit, del};
   document.getElementById("modal-root").innerHTML = `<div class="scrim" data-act="scrim"><div class="modal ${wide?"wide":""}" role="dialog" aria-modal="true" aria-label="${esc(title)}">
     <form id="mform" novalidate>
       <div class="modal-h"><h3>${esc(title)}</h3><div class="spacer"></div><button type="button" class="icon-btn" data-act="close" aria-label="Fechar">${ico("x")}</button></div>
       <div class="modal-b">${body}<div id="m-err" class="banner bad" hidden></div></div>
-      <div class="modal-f">${del?`<button type="button" class="btn danger" data-act="m-del">Excluir</button>`:""}${extraFoot}<div class="spacer"></div><button type="button" class="btn" data-act="close">${onSubmit?"Cancelar":"Fechar"}</button>${onSubmit?`<button type="submit" class="btn primary">${esc(submitLabel)}</button>`:""}</div>
+      <div class="modal-f">${del?`<button type="button" class="btn danger" data-act="m-del">Excluir</button>`:""}${extraFoot}<div class="spacer"></div><button type="button" class="btn" data-act="close">${cancelLabel || (onSubmit?"Cancelar":"Fechar")}</button>${onSubmit?`<button type="submit" class="btn primary">${esc(submitLabel)}</button>`:""}</div>
     </form></div></div>`;
   const f = document.querySelector("#mform input:not([type=hidden]),#mform select");
   if (f && window.matchMedia("(min-width:821px)").matches) f.focus();
@@ -2559,7 +2563,8 @@ function vExtrato(){
     <section class="card s12 xt-head">
       <div class="row" style="flex-wrap:wrap;gap:14px">${destEnt?logoHTML(destEnt,40):""}<div class="grow" style="min-width:200px"><h2>${esc(XT.name)}</h2><div class="tiny muted">${XT.format} · ${XT.rows.length} lançamento(s)${dates.length?` · ${dBR(dates[0])} a ${dBR(dates[dates.length-1])}/${dates[dates.length-1].slice(0,4)}`:""}</div></div>
       <div class="field" style="min-width:220px"><label for="xt-dest">Este extrato é de</label><select id="xt-dest" data-xdest="1">${destOpts}</select></div>
-      <button class="btn" data-act="xt-cancel">Trocar arquivo</button></div>
+      <button class="btn" data-act="xt-cancel">Trocar arquivo</button>
+      <button class="icon-btn xt-x" data-act="xt-close" aria-label="Cancelar importação" title="Cancelar importação">${ico("x")}</button></div>
       ${csvMap}
     </section>
     <section class="card s12">
@@ -2570,7 +2575,7 @@ function vExtrato(){
       </div>
       <div class="xt-list">${vis.length ? vis.map(xtRowHtml).join("") : `<div class="empty">Nada neste filtro.</div>`}</div>
     </section>
-    <div class="xt-bar s12"><div class="grow"><b id="xt-n">${T.n} para importar</b><span class="tiny muted" id="xt-sum">Saídas ${fmt(T.out)} · Entradas ${fmt(T.inn)}${T.semCat?` · ${T.semCat} sem categoria`:""}</span></div>
+    <div class="xt-bar s12"><button class="btn ghost xt-cancel-btn" data-act="xt-close">Cancelar</button><div class="grow"><b id="xt-n">${T.n} para importar</b><span class="tiny muted" id="xt-sum">Saídas ${fmt(T.out)} · Entradas ${fmt(T.inn)}${T.semCat?` · ${T.semCat} sem categoria`:""}</span></div>
       <button class="btn primary" data-act="xt-import" ${T.n?"":"disabled"}>Importar</button></div>
   </div>`;
 }
@@ -2714,6 +2719,9 @@ document.addEventListener("click", e => {
     case "wipe": wipeStep1(); break;
     case "quick": applyQuick(+el.dataset.i); break;
     case "xt-cancel": XT = null; render(); break;
+    case "xt-close": openModal({title:"Cancelar importação?", submitLabel:"Sim, cancelar", cancelLabel:"Continuar revisando",
+      body:`<p style="margin:0">Nenhum lançamento de <b>${esc(XT?.name||"este arquivo")}</b> será salvo e as edições feitas na revisão serão descartadas.</p>`,
+      onSubmit: () => { XT = null; closeModal(); toast("Importação cancelada"); render(); window.scrollTo(0,0); }}); break;
     case "xt-filter": XT.filter = el.dataset.f; render(); break;
     case "xt-all": XT.rows.forEach(r => { if (r.type!=="ignorar") r.include = el.dataset.v==="1"; }); render(); break;
     case "xt-import": xtImport(); break;
